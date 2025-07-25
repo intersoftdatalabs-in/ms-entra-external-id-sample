@@ -22,19 +22,19 @@ public class AuthenticationFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-        res.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
         String path = req.getRequestURI();
         if (path.equals("/login") && req.getMethod().equalsIgnoreCase("POST")) {
             // Handle login directly in filter
             String username = req.getHeader("X-Username");
             String password = req.getHeader("X-Password");
-            if (username != null && password != null && userService.authenticate(username, password)) {
+             boolean isAuthenticated = userService.authenticate(username, password);
+            if (username != null && password != null && isAuthenticated) {
                 res.setStatus(HttpServletResponse.SC_OK);
                 res.setContentType("application/json");
                 res.getWriter().write("{\"username\": \"" + username + "\"}");
             } else {
-                // Return 200 with error JSON to prevent browser basic auth dialog
-                res.setStatus(HttpServletResponse.SC_OK);
+                // Return 401 with error JSON to prevent browser basic auth dialog
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 res.setContentType("application/json");
                 res.getWriter().write("{\"error\": \"Invalid credentials\"}");
             }
