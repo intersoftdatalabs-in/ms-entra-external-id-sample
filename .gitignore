@@ -1,5 +1,6 @@
 # Java
-/target/
+*/target/
+backend/target/
 *.class
 *.jar
 *.war
@@ -9,6 +10,7 @@
 /frontend/node_modules/
 frontend/dist/
 frontend/.angular/cache/
+package-lock.json
 
 # IDE/Editor
 .vscode/
