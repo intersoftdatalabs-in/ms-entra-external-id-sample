@@ -1,0 +1,9 @@
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/model/User.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/config/HibernateConfig.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/service/UserService.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/controller/AuthController.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/repository/UserRepository.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/config/CorsConfig.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/AppInitializer.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/BackendApplication.java
+/home/nate/projects/ms-entra-external-id-sample/backend/src/main/java/com/intsof/samples/entra/filter/AuthenticationFilter.java

@@ -1,0 +1,23 @@
+# Set default text file handling
+* text=auto
+
+# Treat Java files as text
+*.java text
+
+# Treat TypeScript, HTML, CSS as text
+*.ts text
+*.js text
+*.html text
+*.css text
+
+# Treat XML, properties, and SQL files as text
+*.xml text
+*.properties text
+*.sql text
+
+# Treat Markdown and documentation as text
+*.md text
+*.txt text
+
+# Prevent normalization for images and binaries
+*.png binary

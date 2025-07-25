@@ -1,0 +1,20 @@
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+      <h2 class="text-center mb-4">Login</h2>
+      <form (ngSubmit)="login()">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input [(ngModel)]="username" name="username" type="text" class="form-control" id="username" required>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input [(ngModel)]="password" name="password" type="password" class="form-control" id="password" required>
+        </div>
+        <!-- Removed old navigation button to clarify login flow -->
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </form>
+    </div>
+  </div>
+</div>
