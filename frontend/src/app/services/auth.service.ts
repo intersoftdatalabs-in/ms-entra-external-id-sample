@@ -13,9 +13,9 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  login(username: string, password: string): Observable<any> {
+  login(email: string, password: string): Observable<any> {
     const headers = {
-      'X-Username': username,
+      'X-Email': email,
       'X-Password': password
     };
     // Send empty body, credentials in headers

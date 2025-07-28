@@ -13,20 +13,20 @@ import { Router } from '@angular/router';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  username: string = '';
+  email: string = '';
   password: string = '';
   errorMessage: string = '';
 
   constructor(private authService: AuthService, private router: Router) {}
 
   login() {
-    this.authService.login(this.username, this.password).subscribe({
+    this.authService.login(this.email, this.password).subscribe({
       next: response => {
         if (response.error) {
           this.errorMessage = response.error;
         } else {
           this.errorMessage = '';
-          this.router.navigate(['/welcome'], { state: { username: response.username } });
+          this.router.navigate(['/welcome'], { state: { email: response.email } });
         }
       },
       error: (err: HttpErrorResponse) => {

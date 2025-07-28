@@ -8,9 +8,9 @@ import { Router } from '@angular/router';
   styleUrls: ['./welcome.component.css']
 })
 export class WelcomeComponent {
-  username: string = '';
+  email: string = '';
   constructor(private router: Router) {
     const nav = this.router.getCurrentNavigation();
-    this.username = nav?.extras.state?.['username'] || '';
+    this.email = nav?.extras.state?.['email'] || '';
   }
 }

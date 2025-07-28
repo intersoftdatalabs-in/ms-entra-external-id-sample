@@ -25,13 +25,12 @@ public class AuthenticationFilter implements Filter {
         String path = req.getRequestURI();
         if (path.equals("/login") && req.getMethod().equalsIgnoreCase("POST")) {
             // Handle login directly in filter
-            String username = req.getHeader("X-Username");
+            String email = req.getHeader("X-Email");
             String password = req.getHeader("X-Password");
-             boolean isAuthenticated = userService.authenticate(username, password);
-            if (username != null && password != null && isAuthenticated) {
+            if (email != null && password != null && userService.authenticate(email, password)) {
                 res.setStatus(HttpServletResponse.SC_OK);
                 res.setContentType("application/json");
-                res.getWriter().write("{\"username\": \"" + username + "\"}");
+                res.getWriter().write("{\"email\": \"" + email + "\"}");
             } else {
                 // Return 401 with error JSON to prevent browser basic auth dialog
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -42,9 +41,9 @@ public class AuthenticationFilter implements Filter {
         }
 
         // For other endpoints, require authentication
-        String username = req.getHeader("X-Username");
+        String email = req.getHeader("X-Email");
         String password = req.getHeader("X-Password");
-        if (username != null && password != null && userService.authenticate(username, password)) {
+        if (email != null && password != null && userService.authenticate(email, password)) {
             chain.doFilter(request, response);
         } else {
             // Return 200 with error JSON for unauthenticated API requests

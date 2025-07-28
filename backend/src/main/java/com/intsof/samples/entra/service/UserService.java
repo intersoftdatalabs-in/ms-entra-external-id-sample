@@ -11,8 +11,8 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public boolean authenticate(String username, String password) {
-        User user = userRepository.findByUsername(username);
+    public boolean authenticate(String email, String password) {
+        User user = userRepository.findByEmail(email);
         if (user == null) return false;
         return BCrypt.checkpw(password, user.getPasswordHash());
     }
