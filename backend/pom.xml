@@ -50,6 +50,30 @@
       <artifactId>spring-security-crypto</artifactId>
       <version>6.3.8</version>
     </dependency>
+
+        <!-- For Microsoft Identity -->
+    <dependency>
+    <groupId>com.microsoft.azure</groupId>
+    <artifactId>msal4j</artifactId>
+    <version>1.14.3</version>
+    </dependency>
+
+    <!--  For decrypting JWT  -->
+    <dependency>
+    <groupId>com.nimbusds</groupId>
+    <artifactId>nimbus-jose-jwt</artifactId>
+    <version>9.37.3</version>
+    </dependency>
+
+    <!--  For MS Graph  -->
+    <!--  Not Strictly required in this sample, but common helper code includes references to it  -->
+    <dependency>
+    <groupId>com.microsoft.graph</groupId>
+    <artifactId>microsoft-graph</artifactId>
+    <version>5.80.0</version>
+    </dependency>
+
+
   </dependencies>
 
   <build>
