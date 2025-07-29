@@ -1,6 +1,11 @@
 package com.intsof.samples.entra.filter;
 
 import com.intsof.samples.entra.service.UserService;
+import com.intsof.samples.security.AuthenticationResult;
+import com.intsof.samples.security.DatabaseSecurityProvider;
+import com.intsof.samples.security.EntraExternalIdSSOProvider;
+import com.intsof.samples.security.ISecurityProvider;
+import com.intsof.samples.security.SecurityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +20,8 @@ public class AuthenticationFilter implements Filter {
 
     String frontEndLoginUrl = "http://localhost:4200/login";
 
+    private SecurityManager securityManager;
+
     @Autowired
     private UserService userService;
 
@@ -23,6 +30,13 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         String path = req.getRequestURI();
+
+        /* TODO : Implement me
+        AuthenticationResult result = securityManager.authenticate("user@sso-company.com", null);
+        System.out.println("Auth success: " + result.isSuccess());
+        Code below needs to be refactored to use the correct provider / database logic needd moved to the correct provider
+        */
+        
         if (path.equals("/login") && req.getMethod().equalsIgnoreCase("POST")) {
             // Handle login directly in filter
             String email = req.getHeader("X-Email");
@@ -54,8 +68,22 @@ public class AuthenticationFilter implements Filter {
         }
     }
 
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {}
+    /* TODO: Fix me
+     - domains should be loaded from a config file like sso-enabled-domains
+     - that config needs to include any of the IDP specific configuration that we need to talk to entra.
+     */
+    @Override   
+    public void init(FilterConfig filterConfig) throws ServletException {
+        ISecurityProvider dbProvider = new DatabaseSecurityProvider();
+        ISecurityProvider ssoProvider = new EntraExternalIdSSOProvider();
+
+        this.securityManager = new SecurityManager(dbProvider);
+        this.securityManager.registerProvider("sso-company.com", ssoProvider);
+        this.securityManager.registerProvider("partner.org", ssoProvider);
+
+
+
+    }
 
     @Override
     public void destroy() {}
