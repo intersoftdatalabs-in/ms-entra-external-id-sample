@@ -23,7 +23,7 @@ public class CorsConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Collections.singletonList("http://localhost:4200")); // Example origin
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-Username", "X-Password"));
+        config.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-Email", "X-Password"));
         config.setMaxAge(3600L); // 1 hour
         config.setAllowCredentials(true);
         source.registerCorsConfiguration("/**", config); // Apply to all paths
