@@ -30,7 +30,9 @@ export class LoginComponent {
         }
       },
       error: (err: HttpErrorResponse) => {
-        if (err.status === 0) {
+        if (err.error && err.error.error) {
+          this.errorMessage = err.error.error;
+        } else if (err.status === 0) {
           this.errorMessage = 'Cannot connect to server.';
         } else {
           this.errorMessage = 'An unexpected error occurred.';
