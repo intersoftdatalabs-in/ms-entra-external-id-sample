@@ -37,6 +37,11 @@ public class AuthenticationFilter implements Filter {
         Code below needs to be refactored to use the correct provider / database logic needd moved to the correct provider
         */
         
+        if (path.equals("/logout")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         if (path.equals("/login") && req.getMethod().equalsIgnoreCase("POST")) {
             // Handle login directly in filter
             String email = req.getHeader("X-Email");

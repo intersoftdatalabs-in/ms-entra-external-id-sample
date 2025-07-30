@@ -56,6 +56,16 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>msal4j</artifactId>
     <version>1.14.3</version>
+    <exclusions>
+      <exclusion>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-nop</artifactId>
+      </exclusion>
+    </exclusions>
     </dependency>
 
     <!--  For decrypting JWT  -->
@@ -73,6 +83,19 @@
     <version>5.80.0</version>
     </dependency>
 
+
+        <!-- Force SLF4J 2.x to align all dependencies and avoid LoggerFactory conflict -->
+        <!-- Align Jackson with Spring Boot 3 (needed by Spring Web) -->
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>2.0.13</version>
+        </dependency>
+        <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+          <version>2.17.1</version>
+        </dependency>
 
   </dependencies>
 
