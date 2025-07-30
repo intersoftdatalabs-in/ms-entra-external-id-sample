@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { AuthService } from '../../services/auth.service';
+
 @Component({
   selector: 'app-welcome',
   standalone: true,
@@ -9,8 +11,19 @@ import { Router } from '@angular/router';
 })
 export class WelcomeComponent {
   email: string = '';
-  constructor(private router: Router) {
+  constructor(private router: Router, private authService: AuthService) {
     const nav = this.router.getCurrentNavigation();
     this.email = nav?.extras.state?.['email'] || '';
+  }
+
+  signOut() {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['']);
+      },
+      error: () => {
+        this.router.navigate(['']);
+      }
+    });
   }
 }

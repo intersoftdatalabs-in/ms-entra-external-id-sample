@@ -1,10 +1,24 @@
 .welcome-container {
+  flex-direction: column;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 80vh;
 }
+
+.logout-btn {
+  padding: 0.6rem 2rem;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #1565c0;
+  transform: translateY(-2px);
+}
+
 .welcome-message {
+  margin-bottom: 1.5rem;
   font-size: 4rem;
   font-weight: bold;
   color: #1976d2;

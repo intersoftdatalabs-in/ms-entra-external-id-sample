@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { throwError, Observable } from 'rxjs';
 
 @Injectable({
@@ -21,6 +21,20 @@ export class AuthService {
     // Send empty body, credentials in headers
     return this.http.post(this.loginUrl, {}, { headers })
       .pipe(
+        tap(() => {
+          sessionStorage.setItem('authenticated', 'true');
+          sessionStorage.setItem('email', email);
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  logout(): Observable<any> {
+    return this.http.post('http://localhost:8080/logout', {}, {})
+      .pipe(
+        tap(() => {
+          sessionStorage.clear();
+        }),
         catchError(this.handleError)
       );
   }
