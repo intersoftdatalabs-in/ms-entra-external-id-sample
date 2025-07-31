@@ -1,11 +1,23 @@
 package com.intsof.samples.security;
 
+import com.intsof.samples.entra.service.UserService;
+
 public class DatabaseSecurityProvider implements ISecurityProvider {
+
+    private final UserService userService;
+
+    public DatabaseSecurityProvider(UserService userService) {
+        this.userService = userService;
+    }
 
     @Override
     public AuthenticationResult authenticate(String username, String password) {
-        // Implement database authentication logic here
-        return new AuthenticationResult(true, "userId123", "Authentication successful");
+        boolean success = userService.authenticate(username, password);
+        if (success) {
+            return new AuthenticationResult(true, username, "Authentication successful");
+        } else {
+            return new AuthenticationResult(false, null, "Invalid credentials");
+        }
     }
 
     @Override
@@ -15,6 +27,6 @@ public class DatabaseSecurityProvider implements ISecurityProvider {
 
     @Override
     public void logout(String sessionId) {
-        // Implement logout logic here
+        // Implement logout logic here, e.g., invalidate session or token
     }
 }

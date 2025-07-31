@@ -25,6 +25,9 @@ public class AuthenticationFilter implements Filter {
     @Autowired
     private UserService userService;
 
+    @org.springframework.beans.factory.annotation.Value("${sso.enabled-domains:}")
+    private String ssoEnabledDomains;
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
@@ -43,51 +46,65 @@ public class AuthenticationFilter implements Filter {
         }
 
         if (path.equals("/login") && req.getMethod().equalsIgnoreCase("POST")) {
-            // Handle login directly in filter
+            // Handle login directly via SecurityManager which chooses correct provider
             String email = req.getHeader("X-Email");
             String password = req.getHeader("X-Password");
-            if (email != null && password != null && userService.authenticate(email, password)) {
-                res.setStatus(HttpServletResponse.SC_OK);
-                res.setContentType("application/json");
-                res.getWriter().write("{\"email\": \"" + email + "\"}");
+            if (email != null) {
+                AuthenticationResult result = securityManager.authenticate(email, password);
+                if (result.isSuccess()) {
+                    res.setStatus(HttpServletResponse.SC_OK);
+                    res.setContentType("application/json");
+                    res.getWriter().write("{\"email\": \"" + email + "\"}");
+                } else {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.setContentType("application/json");
+                    res.getWriter().write("{\"error\": \"Invalid credentials\"}");
+                }
             } else {
-                // Return 401 with error JSON to prevent browser basic auth dialog
-                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 res.setContentType("application/json");
-                res.getWriter().write("{\"error\": \"Invalid credentials\"}");
+                res.getWriter().write("{\"error\": \"Email header missing\"}");
             }
             return;
         }
 
-        // For other endpoints, require authentication
+        // For other endpoints, require authentication using SecurityManager
         String email = req.getHeader("X-Email");
         String password = req.getHeader("X-Password");
-        if (email != null && password != null && userService.authenticate(email, password)) {
-            chain.doFilter(request, response);
-        } else {
-            // Return 200 with error JSON for unauthenticated API requests
-            res.setStatus(HttpServletResponse.SC_OK);
-            res.setContentType("application/json");
-            res.getWriter().write("{\"error\": \"Unauthorized\"}");
-            return;
+        if (email != null) {
+            AuthenticationResult result = securityManager.authenticate(email, password);
+            if (result.isSuccess()) {
+                chain.doFilter(request, response);
+                return;
+            }
         }
+        // Return 200 with error JSON for unauthenticated API requests
+        res.setStatus(HttpServletResponse.SC_OK);
+        res.setContentType("application/json");
+        res.getWriter().write("{\"error\": \"Unauthorized\"}");
+        return;
     }
 
     /* TODO: Fix me
      - domains should be loaded from a config file like sso-enabled-domains
      - that config needs to include any of the IDP specific configuration that we need to talk to entra.
      */
-    @Override   
-    public void init(FilterConfig filterConfig) throws ServletException {
-        ISecurityProvider dbProvider = new DatabaseSecurityProvider();
+    @Override
+    public void init(FilterConfig filterConfig) {
+        ISecurityProvider dbProvider = new DatabaseSecurityProvider(userService);
         ISecurityProvider ssoProvider = new EntraExternalIdSSOProvider();
 
         this.securityManager = new SecurityManager(dbProvider);
-        this.securityManager.registerProvider("sso-company.com", ssoProvider);
-        this.securityManager.registerProvider("partner.org", ssoProvider);
 
-
-
+        // Register SSO provider for each configured domain
+        if (ssoEnabledDomains != null && !ssoEnabledDomains.isBlank()) {
+            for (String domain : ssoEnabledDomains.split(",")) {
+                String trimmed = domain.trim();
+                if (!trimmed.isEmpty()) {
+                    this.securityManager.registerProvider(trimmed, ssoProvider);
+                }
+            }
+        }
     }
 
     @Override

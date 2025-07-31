@@ -4,8 +4,8 @@ public class EntraExternalIdSSOProvider implements ISecurityProvider {
 
     @Override
     public AuthenticationResult authenticate(String username, String password) {
-        // Implement Entra External ID SSO authentication logic here
-        return new AuthenticationResult(true, "entraUserId123", "Entra External ID SSO authentication successful");
+        // Placeholder implementation – SSO flow not yet implemented
+        return new AuthenticationResult(false, null, "Entra External ID SSO authentication not implemented");
     }
 
     @Override
