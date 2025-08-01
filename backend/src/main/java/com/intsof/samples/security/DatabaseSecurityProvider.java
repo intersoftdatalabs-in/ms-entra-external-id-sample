@@ -1,5 +1,6 @@
 package com.intsof.samples.security;
 
+import com.intsof.samples.entra.constants.ApplicationConstants;
 import com.intsof.samples.entra.service.UserService;
 
 public class DatabaseSecurityProvider implements ISecurityProvider {
@@ -16,7 +17,7 @@ public class DatabaseSecurityProvider implements ISecurityProvider {
         if (success) {
             return new AuthenticationResult(true, username, "Authentication successful");
         } else {
-            return new AuthenticationResult(false, null, "Invalid credentials");
+            return new AuthenticationResult(false, null, ApplicationConstants.ERROR_INVALID_CREDENTIALS);
         }
     }
 
@@ -27,6 +28,5 @@ public class DatabaseSecurityProvider implements ISecurityProvider {
 
     @Override
     public void logout(String sessionId) {
-        // Implement logout logic here, e.g., invalidate session or token
     }
 }
