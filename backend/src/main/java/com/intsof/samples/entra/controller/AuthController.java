@@ -11,10 +11,9 @@ import jakarta.servlet.http.HttpSession;
 
 @RestController
 public class AuthController {
-    @Autowired
+    //@Autowired
 
-
-    @PostMapping("/login")
+    @PostMapping("/loginold")
     public ResponseEntity<?> login() {
         // Authentication is handled by the filter. If we reach here, user is authenticated.
         return ResponseEntity.ok().build();
