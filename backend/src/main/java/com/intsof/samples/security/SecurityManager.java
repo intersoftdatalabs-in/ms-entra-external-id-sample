@@ -33,9 +33,11 @@ public class SecurityManager {
      * @return the result of the authentication
      */
     public AuthenticationResult authenticate(String email, String password) {
-        String domain = extractDomain(email);
-        ISecurityProvider provider = domainProviderMap.getOrDefault(domain, defaultProvider);
-        return provider.authenticate(email, password);
+        return getSecurityProvider(email).authenticate(email, password);
+    }
+
+    public ISecurityProvider getSecurityProvider(String email) {
+        return domainProviderMap.getOrDefault(extractDomain(email), defaultProvider);
     }
 
     /**

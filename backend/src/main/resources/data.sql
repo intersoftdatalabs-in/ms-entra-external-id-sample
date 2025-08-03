@@ -10,3 +10,6 @@ CREATE TABLE users (
 -- BCrypt hash for 'test2': $2a$10$wqJ6QnQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQw
 INSERT INTO users (email, passwordHash) VALUES ('test1@example.com', '$2a$10$7QJ6QnQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQw');
 INSERT INTO users (email, passwordHash) VALUES ('test2@example.com', '$2a$10$8QJ6QnQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQw');
+INSERT INTO users (email, passwordHash) VALUES ('admin@intsof.com', 'admin');
+INSERT INTO users (email, passwordHash) VALUES ('admin@gmail.com', 'admin');
+INSERT INTO users (email, passwordHash) VALUES ('admin@microsoft.com', 'admin');

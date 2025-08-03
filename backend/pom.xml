@@ -20,14 +20,12 @@
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
       <version>3.1.0</version>
-      <scope>provided</scope>
     </dependency>
     <!-- Servlet API -->
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <version>6.0.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -53,49 +51,48 @@
 
         <!-- For Microsoft Identity -->
     <dependency>
-    <groupId>com.microsoft.azure</groupId>
-    <artifactId>msal4j</artifactId>
-    <version>1.14.3</version>
-    <exclusions>
-      <exclusion>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-nop</artifactId>
-      </exclusion>
-    </exclusions>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>msal4j</artifactId>
+      <version>1.14.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-nop</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!--  For decrypting JWT  -->
     <dependency>
-    <groupId>com.nimbusds</groupId>
-    <artifactId>nimbus-jose-jwt</artifactId>
-    <version>9.37.3</version>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>9.37.3</version>
     </dependency>
 
     <!--  For MS Graph  -->
     <!--  Not Strictly required in this sample, but common helper code includes references to it  -->
     <dependency>
-    <groupId>com.microsoft.graph</groupId>
-    <artifactId>microsoft-graph</artifactId>
-    <version>5.80.0</version>
+      <groupId>com.microsoft.graph</groupId>
+      <artifactId>microsoft-graph</artifactId>
+      <version>5.80.0</version>
     </dependency>
 
-
-        <!-- Force SLF4J 2.x to align all dependencies and avoid LoggerFactory conflict -->
-        <!-- Align Jackson with Spring Boot 3 (needed by Spring Web) -->
-        <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-          <version>2.0.13</version>
-        </dependency>
-        <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-          <version>2.17.1</version>
-        </dependency>
+    <!-- Force SLF4J 2.x to align all dependencies and avoid LoggerFactory conflict -->
+    <!-- Align Jackson with Spring Boot 3 (needed by Spring Web) -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.17.1</version>
+    </dependency>
 
   </dependencies>
 

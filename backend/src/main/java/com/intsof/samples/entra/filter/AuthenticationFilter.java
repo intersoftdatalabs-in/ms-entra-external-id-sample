@@ -64,7 +64,11 @@ public class AuthenticationFilter implements Filter {
         String email = req.getHeader("X-Email");
         String password = req.getHeader("X-Password");
 
-        if (LOGOUT_PATH.equals(path)) {
+        ISecurityProvider securityProvider = null;
+        if (email != null) {
+            securityProvider = securityManager.getSecurityProvider(email);
+        }
+        if (LOGOUT_PATH.equals(path) || securityProvider instanceof EntraExternalIdSSOProvider) {
             chain.doFilter(request, response);
             return;
         }
@@ -73,15 +77,6 @@ public class AuthenticationFilter implements Filter {
             handleLogin(email, password, res);
             return;
         }
-
-        if (email != null) {
-            AuthenticationResult result = securityManager.authenticate(email, password);
-            if (result.isSuccess()) {
-                chain.doFilter(request, response);
-                return;
-            }
-        }
-
         res.setStatus(HttpServletResponse.SC_OK);
         res.getWriter().write("{\"error\": \"" + ApplicationConstants.ERROR_UNAUTHORIZED + "\"}");
     }
