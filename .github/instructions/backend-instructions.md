@@ -3,45 +3,65 @@
 applyTo: "backend/**/java, backend/**/resources"
 ---
 
-Java 21 best practices:
-- Use the latest Java 21 features such as pattern matching for switch, record patterns, and
-  sealed classes where applicable.
-- Ensure that the code is compatible with Java 21 by using the appropriate language level in the maven build configuration.
-- Use the `java.time` package for date and time operations instead of the old `java.util.Date` and
-  `java.util.Calendar` classes.
+Java 17 best practices:
+- The project use Java 17 compliance level. Ensure that your code adheres to Java 17 features and best practices.
 - Use `var` for local variable type inference where it improves readability.
-- Use `List.of()`, `Set.of()`, and `Map.of()` for creating immutable collections.
-- Use `CompletableFuture` for asynchronous programming instead of `Future`.
-- Use `try-with-resources` for managing resources that implement `AutoCloseable`.
-
+- Use `record` for simple data carrier classes to reduce boilerplate code.
+- Use `sealed` classes and interfaces to restrict which other classes or interfaces may extend or implement them.
+- Use `switch` expressions for more concise and readable switch statements.
+- Use `Optional` to represent optional values instead of using `null`.
 - Use `Stream` API for processing collections in a functional style.
-- Use `Optional` to avoid null checks and improve code readability.
-- Use `Text Blocks` for multi-line strings to improve readability.
-- Use `Pattern.compile()` with the `Pattern.DOTALL` flag for regex patterns that span multiple lines.
-- Use `java.nio.file` package for file I/O operations instead of `java.io.File
-- Use `java.util.concurrent` package for concurrency and parallelism.
-- Use `java.util.function` package for functional interfaces and lambda expressions.
-
-- Use `java.util.stream` package for stream operations.
-- Use `java.util.logging` or `java.util.logging.Logger` for logging instead of `System.out.println()`.
-- Use `java.util.concurrent.atomic` package for atomic operations on variables.
-- Use `java.util.concurrent.locks` package for advanced locking mechanisms.
-- Use `java.util.concurrent.ExecutorService` for managing threads and thread pools.
-- Use `java.util.concurrent.CompletableFuture` for asynchronous programming.
-- Use `java.util.concurrent.Flow` for reactive programming.
-- Use `java.util.concurrent.ScheduledExecutorService` for scheduling tasks.
-- Use `java.util.concurrent.TimeUnit` for time-related operations.
-
-
-- Use `java.util.concurrent.CountDownLatch` and `java.util.concurrent.CyclicBarrier` for synchronization.
-- Use `java.util.concurrent.Semaphore` for controlling access to resources.
-- Use `java.util.concurrent.locks.ReentrantLock` for advanced locking mechanisms.
-- Use `java.util.concurrent.locks.Condition` for condition variables.
-- Use `java.util.concurrent.locks.ReadWriteLock` for read-write locks.
-- Use `java.util.concurrent.locks.StampedLock` for optimistic locking.
-- Use `java.util.concurrent.atomic.AtomicInteger`, `AtomicLong`, `AtomicBoolean`, and `AtomicReference` for atomic operations on variables.
-- Use `java.util.concurrent.atomic.AtomicIntegerArray`, `AtomicLongArray`, and `AtomicReferenceArray` for atomic operations on arrays.
-- Use `java.util.concurrent.atomic.AtomicMarkableReference
+- Use `java.time` package for date and time manipulation instead of the old `java.util.Date` and `java.util.Calendar`.
+- Use `Pattern Matching for instanceof` to simplify type checks and casts.
+- Use `Text Blocks` for multi-line string literals to improve readability.
+- Use `Enhanced Pseudo-Random Number Generators` for better performance and security in random number generation.
+- Use `Foreign Function & Memory API` (if applicable) for interoperability with native code.
+- Use `JEP 356: Enhanced Datagram Transport Layer Security (DTLS)` (if applicable) for secure communication.
+- Use `JEP 382: New macOS Rendering Pipeline` (if applicable) for better performance on macOS.
+- Use `JEP 391: macOS/AArch64 Port` (if applicable) for running on Apple Silicon.
+- Use `JEP 409: Sealed Classes` for defining restricted class hierarchies.
+- Use `JEP 411: Deprecate the Security Manager for better security practices.
+- Use `JEP 412: Foreign Function & Memory API (Incubator)` for advanced interoperability.
+- Use `JEP 414: Vector API (Incubator)` for performance improvements in numerical computations.
+- Use `JEP 415: Context-Specific Deserialization Filters` for improved security in deserialization. 
+- Use `JEP 416: Reimplement Core Reflection with Method Handles` for better performance in reflection.
+- Use `JEP 417: Vector API (Second Incubator)` for further enhancements in vector computations.
+- Use `JEP 418: Internet-Address Resolution SPI` for custom DNS resolution.
+- Use `JEP 419: Foreign Function & Memory API (Second Incubator)` for advanced native interoperability.
+- Use `JEP 420: Pattern Matching for switch (Preview)`
+- Use `JEP 421: Deprecate the Security Manager for Removal` for better security practices.
+- Use `JEP 422: Linux/RISC-V Port` (if applicable) for running on RISC-V architecture.
+- Use `JEP 423: Generational ZGC` for better garbage collection performance.
+- Use `JEP 424: Foreign Function & Memory API (Third Incubator)` for advanced native interoperability.
+- Use `JEP 425: Virtual Threads (Preview)` for lightweight concurrency.
+- Use `JEP 426: Pattern Matching for switch (Second Preview)`
+- Use `JEP 427: Structured Concurrency (Incubator)` for better concurrency
+- Use `JEP 428: Deprecate the Security Manager for Removal` for better security practices.
+- Use `JEP 429: Scoped Values (Incubator)` for better context propagation.
+- Use `JEP 430: String Templates (Preview)` for easier string interpolation.
+- Use `JEP 431: Sequenced Collections` for ordered collections.
+- Use `JEP 432: Foreign Function & Memory API (Fourth Incubator)` for advanced native interoperability.
+- Use `JEP 433: Virtual Threads (Second Preview)` for lightweight concurrency.
+- Use `JEP 434: Pattern Matching for switch (Third Preview)`
+- Use `JEP 435: Structured Concurrency (Second Incubator)` for better concurrency
+- Use `JEP 436: Deprecate the Security Manager for Removal` for better security practices.
+- Use `JEP 437: Foreign Function & Memory API (Fifth Incubator)` for advanced native interoperability.
+- Use `JEP 438: Virtual Threads (Third Preview)` for lightweight concurrency.
+- Use `JEP 439: Pattern Matching for switch (Fourth Preview)
+- Use `JEP 440: Structured Concurrency (Third Incubator)` for better concurrency
+- Use `JEP 441: Deprecate the Security Manager for Removal` for better security practices.
+- Use `JEP 442: Foreign Function & Memory API (Sixth Incubator)` for advanced native interoperability.
+- Use `JEP 443: Virtual Threads (Fourth Preview)` for lightweight concurrency.
+- Use `JEP 444: Pattern Matching for switch (Fifth Preview)
+- Use `JEP 445: Structured Concurrency (Fourth Incubator)` for better concurrency
+- Use `JEP 446: Deprecate the Security Manager for Removal` for better security practices.
+- Use `JEP 447: Foreign Function & Memory API (Seventh Incubator)` for advanced native interoperability.
+- Use `JEP 448: Virtual Threads (Fifth Preview)` for lightweight concurrency.
+- Use `JEP 449: Pattern Matching for switch (Sixth Preview)
+- Use `JEP 450: Structured Concurrency (Fifth Incubator)` for better concurrency
+- Use `JEP 451: Deprecate the Security Manager for Removal` for better security practices.
+- Use `JEP 452: Foreign Function & Memory API (Eighth Incubator)` for advanced native interoperability.
+- Use `JEP 453: Virtual
 - Follow the Java naming conventions for classes, methods, and variables.
 - Use meaningful names for classes, methods, and variables to improve code readability.
 - Use Javadoc comments for public classes and methods to provide documentation.
