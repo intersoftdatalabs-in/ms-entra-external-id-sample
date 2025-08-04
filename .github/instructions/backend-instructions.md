@@ -174,3 +174,20 @@ Java 21 best practices:
   </executions>
 </plugin>
 ```
+- When making code changes, ensure that the changed code compiles by executing the following command as an agent:
+```
+mvn -q compile
+```
+- Run tests to ensure that the code changes do not break existing functionalityby by executing the following command as an agent:
+```
+mvn -q test
+```
+- Always prefer the jakarta namespace for imports and annotations, as the javax namespace is deprecated in Java 21.
+- If #codebase/.env is present, source the file to set environment variables for the application prior to running the application.
+```bash
+source .env
+```
+- Use the `spring-boot:run` goal to run the application in development mode:
+```bash
+mvn spring-boot:run
+```
