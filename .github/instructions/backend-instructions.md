@@ -6,8 +6,7 @@ applyTo: "backend/**/java, backend/**/resources"
 Java 21 best practices:
 - Use the latest Java 21 features such as pattern matching for switch, record patterns, and
   sealed classes where applicable.
-- Ensure that the code is compatible with Java 21 by using the appropriate language level in your
-  build configuration (maven)
+- Ensure that the code is compatible with Java 21 by using the appropriate language level in the maven build configuration.
 - Use the `java.time` package for date and time operations instead of the old `java.util.Date` and
   `java.util.Calendar` classes.
 - Use `var` for local variable type inference where it improves readability.
@@ -77,8 +76,101 @@ Java 21 best practices:
 - Use `@ConditionalOnClass`, `@ConditionalOnMissingClass`, `@ConditionalOnBean`, and `@ConditionalOnMissingBean` annotations for conditional bean creation based on classpath and bean presence in Spring.
 - Use `@ConditionalOnExpression` annotation for conditional bean creation based on SpEL expressions in Spring.
 - Use MSAL4J for Microsoft Entra External Id authentication in the application
-    - Add the MSAL4J dependency to your `pom.xml` or `build.gradle` file.
+    - Add the MSAL4J dependency to your `pom.xml` file.
     - Configure the MSAL4J client with the necessary credentials and endpoints.
     - Use the MSAL4J client to acquire tokens and authenticate users.
     - Follow best practices for Microsoft Entra External Id authentication, such as using secure storage for credentials and handling token expiration gracefully.
     - 
+  # Maven Configuration
+- Ensure that the `pom.xml` file is configured to use Java 21 as the source and target version.
+- Use the `maven-compiler-plugin` to set the Java version:
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <version>3.8.1</version>
+  <configuration>
+    <source>21</source>
+    <target>21</target>
+  </configuration>
+</plugin>
+```
+- Use the `spring-boot-maven-plugin` to build and run the Spring Boot application:
+```xml
+<plugin>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-maven-plugin</artifactId>
+  <version>3.0.0</version>
+</plugin> 
+```
+- Use the `maven-surefire-plugin` for running tests:
+```xml
+<plugin>  
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-surefire-plugin</artifactId>
+  <version>2.22.2</version>
+</plugin>         
+```
+- Use the `maven-jar-plugin` for packaging the application as a JAR file:
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-jar-plugin</artifactId>         
+  <version>3.2.0</version>
+  <configuration>
+    <archive>
+      <manifest>
+        <addClasspath>true</addClasspath>         
+        <mainClass>com.example.Application</mainClass>
+      </manifest>
+    </archive>
+  </configuration>
+</plugin>
+```
+- Use the `maven-dependency-plugin` for managing dependencies:
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-dependency-plugin</artifactId>      
+  <version>3.1.2</version>
+  <executions>
+    <execution> 
+      <id>copy-dependencies</id>
+      <phase>package</phase>
+      <goals>
+        <goal>copy-dependencies</goal>
+      </goals>
+      <configuration>
+        <outputDirectory>${project.build.directory}/lib</outputDirectory>
+      </configuration>
+    </execution>
+  </executions>   
+</plugin>
+```
+
+- Use the `maven-resources-plugin` for copying resources:
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-resources-plugin</artifactId>         
+  <version>3.2.0</version>
+  <executions>
+    <execution>
+      <id>copy-resources</id>
+      <phase>process-resources</phase>
+      <goals>
+        <goal>copy-resources</goal>
+      </goals>        
+      <configuration>
+        <outputDirectory>${project.build.directory}/classes</outputDirectory>
+        <resources>
+          <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+          </resource>
+        </resources>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
