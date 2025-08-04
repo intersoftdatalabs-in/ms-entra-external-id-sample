@@ -31,18 +31,6 @@ export class AuthService {
     );
   }
 
-  logout(): Observable<any> {
-    return this.http.post('http://localhost:8080/logout', {}, {})
-      .pipe(
-        tap(() => {
-          sessionStorage.clear();
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-        }),
-        catchError(this.handleError)
-      );
-  }
-
   getAccessToken(): string | null {
     return localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
   }
@@ -88,10 +76,54 @@ export class AuthService {
       tap((response: any) => {
         if (response.accessToken) {
           localStorage.setItem('accessToken', response.accessToken);
+          // Update refresh token if rotation is enabled
+          if (response.refreshToken) {
+            localStorage.setItem('refreshToken', response.refreshToken);
+          }
         }
       }),
-      catchError(this.handleError)
+      catchError((error: HttpErrorResponse) => {
+        // Handle specific error cases for Phase 6 features
+        if (error.status === 401) {
+          // Token might be compromised or invalid - clear all tokens
+          this.clearTokens();
+        }
+        return this.handleError(error);
+      })
     );
+  }
+
+  /**
+   * Enhanced logout with token invalidation
+   */
+  logout(): Observable<any> {
+    const token = this.getAccessToken();
+    const headers: any = {};
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return this.http.post('http://localhost:8080/logout', {}, { headers })
+      .pipe(
+        tap(() => {
+          this.clearTokens();
+        }),
+        catchError((error: HttpErrorResponse) => {
+          // Clear tokens even if logout fails
+          this.clearTokens();
+          return this.handleError(error);
+        })
+      );
+  }
+
+  /**
+   * Clear all stored tokens
+   */
+  private clearTokens(): void {
+    sessionStorage.clear();
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
   }
 
   private handleError(error: HttpErrorResponse) {

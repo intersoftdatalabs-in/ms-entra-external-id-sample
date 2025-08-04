@@ -1,6 +1,9 @@
 package com.intsof.samples.entra.filter;
 
 import com.intsof.samples.entra.service.JwtService;
+import com.intsof.samples.entra.service.RateLimitingService;
+import com.intsof.samples.entra.service.AuditLoggingService;
+import com.intsof.samples.entra.service.TokenBlacklistService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -18,17 +21,31 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AuthenticationFilterTest {
     private AuthenticationFilter filter;
     private JwtService jwtService;
+    private RateLimitingService rateLimitingService;
+    private AuditLoggingService auditLoggingService;
+    private TokenBlacklistService tokenBlacklistService;
 
     @BeforeEach
     public void setUp() {
+        // Create other required services first
+        tokenBlacklistService = new TokenBlacklistService();
+        
         // Create a real JwtService instance and set its fields for testing
         jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "secret", "0123456789abcdef0123456789abcdef");
         ReflectionTestUtils.setField(jwtService, "expiration", 3600000L);
         ReflectionTestUtils.setField(jwtService, "refreshExpiration", 86400000L);
         ReflectionTestUtils.setField(jwtService, "issuer", "test-issuer");
+        ReflectionTestUtils.setField(jwtService, "tokenBlacklistService", tokenBlacklistService);
         
-        filter = new AuthenticationFilter(jwtService);
+        rateLimitingService = new RateLimitingService();
+        ReflectionTestUtils.setField(rateLimitingService, "maxAttempts", 5);
+        ReflectionTestUtils.setField(rateLimitingService, "windowMinutes", 1);
+        ReflectionTestUtils.setField(rateLimitingService, "rateLimitingEnabled", true);
+        
+        auditLoggingService = new AuditLoggingService();
+        
+        filter = new AuthenticationFilter(jwtService, rateLimitingService, auditLoggingService, tokenBlacklistService);
     }
 
     @Test

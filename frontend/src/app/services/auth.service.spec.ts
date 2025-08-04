@@ -55,12 +55,49 @@ describe('AuthService', () => {
     expect(service.getUserRoles()).toEqual(['ADMIN', 'USER']);
   });
 
-  it('should refresh token', () => {
+  it('should refresh token and update both tokens', () => {
     localStorage.setItem('refreshToken', 'refresh123');
     service.refreshToken().subscribe();
     const req = httpMock.expectOne('http://localhost:8080/refresh');
-    req.flush({ accessToken: 'newtoken' });
-    expect(localStorage.getItem('accessToken')).toBe('newtoken');
+    // Simulate Phase 6 token rotation - both tokens updated
+    req.flush({ 
+      accessToken: 'newAccessToken', 
+      refreshToken: 'newRefreshToken' 
+    });
+    expect(localStorage.getItem('accessToken')).toBe('newAccessToken');
+    expect(localStorage.getItem('refreshToken')).toBe('newRefreshToken');
+  });
+
+  it('should handle refresh token error and clear tokens', () => {
+    localStorage.setItem('accessToken', 'oldToken');
+    localStorage.setItem('refreshToken', 'refresh123');
+    
+    service.refreshToken().subscribe({
+      error: () => {
+        // Expected error behavior
+      }
+    });
+    
+    const req = httpMock.expectOne('http://localhost:8080/refresh');
+    req.flush({ error: 'Token theft detected' }, { status: 401, statusText: 'Unauthorized' });
+    
+    // Tokens should be cleared on 401 error
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('refreshToken')).toBeNull();
+  });
+
+  it('should send authorization header on logout', () => {
+    const token = 'validAccessToken';
+    localStorage.setItem('accessToken', token);
+    
+    service.logout().subscribe();
+    
+    const req = httpMock.expectOne('http://localhost:8080/logout');
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${token}`);
+    req.flush({});
+    
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('refreshToken')).toBeNull();
   });
 
   afterEach(() => {
