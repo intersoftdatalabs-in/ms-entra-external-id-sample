@@ -62,6 +62,9 @@ export class AuthService {
   }
 
   getUserRoles(): string[] {
+    if (!this.isAuthenticated()) {
+      return [];
+    }
     const token = this.getAccessToken();
     const payload = this.decodeToken(token || '');
     return payload && payload.roles ? payload.roles : [];
