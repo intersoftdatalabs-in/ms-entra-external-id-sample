@@ -12,4 +12,15 @@ INSERT INTO users (email, passwordHash) VALUES ('test1@example.com', '$2a$10$7QJ
 INSERT INTO users (email, passwordHash) VALUES ('test2@example.com', '$2a$10$8QJ6QnQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQw');
 INSERT INTO users (email, passwordHash) VALUES ('admin@intsof.com', 'admin');
 INSERT INTO users (email, passwordHash) VALUES ('admin@gmail.com', 'admin');
-INSERT INTO users (email, passwordHash) VALUES ('admin@microsoft.com', 'admin');
+
+DROP TABLE IF EXISTS user_roles;
+CREATE TABLE user_roles (
+  user_id BIGINT NOT NULL,
+  role VARCHAR(50) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Assign default roles to existing users
+INSERT INTO user_roles (user_id, role) SELECT id, 'USER' FROM users;
+-- Assign ADMIN role to admin users
+INSERT INTO user_roles (user_id, role) SELECT id, 'ADMIN' FROM users WHERE email LIKE 'admin%';

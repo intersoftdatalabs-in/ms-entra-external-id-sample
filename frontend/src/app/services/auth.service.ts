@@ -18,15 +18,17 @@ export class AuthService {
       'X-Email': email,
       'X-Password': password
     };
-    // Send empty body, credentials in headers
-    return this.http.post(this.loginUrl, {}, { headers })
-      .pipe(
-        tap(() => {
+    return this.http.post(this.loginUrl, {}, { headers }).pipe(
+      tap((response: any) => {
+        if (response.accessToken) {
+          localStorage.setItem('accessToken', response.accessToken);
+          localStorage.setItem('refreshToken', response.refreshToken);
           sessionStorage.setItem('authenticated', 'true');
           sessionStorage.setItem('email', email);
-        }),
-        catchError(this.handleError)
-      );
+        }
+      }),
+      catchError(this.handleError)
+    );
   }
 
   logout(): Observable<any> {
@@ -34,9 +36,62 @@ export class AuthService {
       .pipe(
         tap(() => {
           sessionStorage.clear();
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
         }),
         catchError(this.handleError)
       );
+  }
+
+  getAccessToken(): string | null {
+    return localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+  }
+
+  isAuthenticated(): boolean {
+    const token = this.getAccessToken();
+    return !!token && !this.isTokenExpired(token);
+  }
+
+  isTokenExpired(token: string): boolean {
+    if (!token) return true;
+    const payload = this.decodeToken(token);
+    if (!payload || !payload.exp) return true;
+    const now = Math.floor(Date.now() / 1000);
+    return payload.exp < now;
+  }
+
+  decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  getUserRoles(): string[] {
+    const token = this.getAccessToken();
+    const payload = this.decodeToken(token || '');
+    return payload && payload.roles ? payload.roles : [];
+  }
+
+  refreshToken(): Observable<any> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) return throwError(() => new Error('No refresh token available'));
+    return this.http.post('http://localhost:8080/refresh', {}, {
+      headers: { 'X-Refresh-Token': refreshToken }
+    }).pipe(
+      tap((response: any) => {
+        if (response.accessToken) {
+          localStorage.setItem('accessToken', response.accessToken);
+        }
+      }),
+      catchError(this.handleError)
+    );
   }
 
   private handleError(error: HttpErrorResponse) {
