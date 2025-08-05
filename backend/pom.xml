@@ -3,6 +3,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.5</version>
+    <relativePath/>
+  </parent>
+  
   <groupId>com.intsof.samples.entra</groupId>
   <artifactId>ms-entra-external-id-backend</artifactId>
   <version>1.0-SNAPSHOT</version>
@@ -15,39 +23,22 @@
   </properties>
 
   <dependencies>
-        <!-- Tomcat for javax.servlet API in tests -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <version>3.2.5</version>
-            <scope>test</scope>
-        </dependency>
         <!-- Mockito for unit testing -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.2.0</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- javax.servlet API for test mocks -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
             <scope>test</scope>
         </dependency>
         <!-- JUnit 5 for unit testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
         <!-- Spring Test utilities -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>6.1.6</version>
             <scope>test</scope>
         </dependency>
     <!-- JPA API -->
@@ -56,21 +47,13 @@
       <artifactId>jakarta.persistence-api</artifactId>
       <version>3.1.0</version>
     </dependency>
-    <!-- Servlet API -->
-    <dependency>
-      <groupId>jakarta.servlet</groupId>
-      <artifactId>jakarta.servlet-api</artifactId>
-      <version>6.0.0</version>
-    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-      <version>3.2.5</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
-      <version>3.2.5</version>
     </dependency>
     <dependency>
       <groupId>org.hsqldb</groupId>
@@ -81,7 +64,6 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-crypto</artifactId>
-      <version>6.3.8</version>
     </dependency>
 
         <!-- For Microsoft Identity -->
@@ -117,16 +99,13 @@
     </dependency>
 
     <!-- Force SLF4J 2.x to align all dependencies and avoid LoggerFactory conflict -->
-    <!-- Align Jackson with Spring Boot 3 (needed by Spring Web) -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>2.0.13</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.17.1</version>
     </dependency>
 
   </dependencies>
@@ -137,7 +116,6 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>3.2.5</version>
      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
