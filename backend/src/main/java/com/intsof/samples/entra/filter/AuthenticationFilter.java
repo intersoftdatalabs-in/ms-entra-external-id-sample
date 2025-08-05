@@ -63,39 +63,20 @@ public class AuthenticationFilter implements Filter {
         String path = req.getRequestURI();
         String email = req.getHeader("X-Email");
         String password = req.getHeader("X-Password");
-
-        ISecurityProvider securityProvider = null;
-        if (email != null) {
-            securityProvider = securityManager.getSecurityProvider(email);
-        }
-        if (LOGOUT_PATH.equals(path) || securityProvider instanceof EntraExternalIdSSOProvider) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if (LOGIN_PATH.equals(path) && "POST".equalsIgnoreCase(req.getMethod())) {
-            handleLogin(email, password, res);
-            return;
-        }
-        res.setStatus(HttpServletResponse.SC_OK);
-        res.getWriter().write("{\"error\": \"" + ApplicationConstants.ERROR_UNAUTHORIZED + "\"}");
-    }
-
-    private void handleLogin(String email, String password, HttpServletResponse res) throws IOException {
-        if (email == null) {
-            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        if (email==null) {
             res.getWriter().write("{\"error\": \"" + ApplicationConstants.ERROR_EMAIL_HEADER_MISSING + "\"}");
             return;
         }
 
-        AuthenticationResult result = securityManager.authenticate(email, password);
-        if (result.isSuccess()) {
-            res.setStatus(HttpServletResponse.SC_OK);
+        AuthenticationResult authenticationResult = securityManager.getSecurityProvider(email).authenticate(email, password);
+        res.setStatus(HttpServletResponse.SC_OK);
+        if(authenticationResult.isSuccess()) {
             res.getWriter().write("{\"email\": \"" + email + "\"}");
+            //((HttpServletResponse) response).sendRedirect("http://localhost:4200/welcome");
         } else {
-            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            res.getWriter().write("{\"error\": \"" + ApplicationConstants.ERROR_INVALID_CREDENTIALS + "\"}");
+            res.getWriter().write("{\"error\": \"" + ApplicationConstants.ERROR_UNAUTHORIZED + "\"}");
         }
+
     }
 
     @Override

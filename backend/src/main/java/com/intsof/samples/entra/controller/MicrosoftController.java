@@ -14,16 +14,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping
+@CrossOrigin(origins = {"http://localhost:4200"})
 public class MicrosoftController {
 
 	private static final Logger logger = LogManager.getLogger(MicrosoftController.class);
@@ -48,22 +49,41 @@ public class MicrosoftController {
 
 	@PostMapping("/login")
 	public void loginmicrosoft(HttpServletResponse response) throws IOException {
-		String authUrl = "https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/authorize?" +
-				"client_id={CLIENT_ID}&response_type=code&redirect_uri=" + URLEncoder.encode(redirectUri, "UTF-8") +
-				"&response_mode=query&scope={SCOPE}&state=12345";
 
-		authUrl = authUrl.replaceAll("\\{TENANT_ID}",tenantId);
-		authUrl = authUrl.replaceAll("\\{CLIENT_ID}",clientId);
-		authUrl = authUrl.replaceAll("\\{SCOPE}",scope);
-		response.sendRedirect(authUrl);
+		StringBuilder authUrl = new StringBuilder(authorizationUri)
+				.append("?client_id=").append(clientId)
+				.append("&response_type=code&redirect_uri=")
+				.append(URLEncoder.encode(redirectUri, "UTF-8"))
+				.append("&response_mode=query&scope=")
+				.append(scope)
+				.append("&state=12345");
+
+		System.out.println(authUrl);
+		response.sendRedirect(authUrl.toString());
 	}
 
-	@PostMapping("/auth/callback")
-	public String callback(@RequestParam("code") String code) throws Exception {
+	@GetMapping("/callback")
+	public ResponseEntity<String> callback(
+			@RequestParam("code") String code,
+			@RequestParam(value = "state", required = false) String state,
+			@RequestParam(value = "session_state", required = false) String sessionState) throws Exception {
+		// Log or process the authorization code
+
+		String email = generateIdToken(code);
+		// You can now exchange this code for tokens using MSAL4J
+		return ResponseEntity.ok("Congratulation !!! Microsoft Authorization code received. You can now exchange it for tokens. " + email);
+	}
+
+	@PostMapping("/getIdToken")
+	public String getIdToken(@RequestParam("code") String code) throws Exception {
+		return generateIdToken(code);
+	}
+
+	private String generateIdToken(String code) throws Exception {
 		ConfidentialClientApplication app = ConfidentialClientApplication.builder(
 				clientId,
 				ClientCredentialFactory.createFromSecret(clientSecret))
-				.authority("https://login.microsoftonline.com/"+tenantId)
+				.authority(authorizationUri)
 				.build();
 
 		AuthorizationCodeParameters parameters = AuthorizationCodeParameters.builder(
@@ -78,7 +98,7 @@ public class MicrosoftController {
 		SignedJWT jwt = SignedJWT.parse(idToken);
 		JWTClaimsSet claims = jwt.getJWTClaimsSet();
 		String email = claims.getStringClaim("email");
-
+		System.out.println(email);
 		return "Logged in as: " + email;
 	}
 
@@ -98,7 +118,7 @@ public class MicrosoftController {
 
 	private Set<String> setScopes() {
 		Set<String> setScope = new LinkedHashSet<>();
-		for (String element : scope.split(",")) {
+		for (String element : scope.split(" ")) {
 			setScope.add(element.trim());
 		}
 		return setScope;

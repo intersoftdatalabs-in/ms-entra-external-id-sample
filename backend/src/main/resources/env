@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export MSEEIS_CLIENT_ID="77070d75-188f-4e8e-b612-f12723876bd4"
+export MSEEIS_TENANT_ID="08d2c45a-b1b0-4ef1-a877-a5ab57a8c74e"
+
+export MSEEIS_GRANT_TYPE="authorization_code"
+export MSEEIS_REDIRECT_URI="http://localhost:8080/callback"
+export MSEEIS_SCOPE="openid profile email"
+export MSEEIS_AUTHORIZATION_URI="https://login.microsoftonline.com/08d2c45a-b1b0-4ef1-a877-a5ab57a8c74e/oauth2/v2.0/authorize"
+export MSEEIS_TOKEN_URI="https://login.microsoftonline.com/08d2c45a-b1b0-4ef1-a877-a5ab57a8c74e/oauth2/v2.0/token"
+export MSEEIS_USER_INFO_URI="https://graph.microsoft.com/oidc/userinfo"
+export MSEEIS_USER_NAME_ATTRIBUTE="name"

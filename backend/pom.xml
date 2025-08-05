@@ -49,7 +49,7 @@
       <version>6.3.8</version>
     </dependency>
 
-        <!-- For Microsoft Identity -->
+    <!-- For Microsoft Identity -->
     <dependency>
       <groupId>com.microsoft.azure</groupId>
       <artifactId>msal4j</artifactId>
@@ -92,6 +92,12 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.17.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <version>3.1.0</version>
     </dependency>
 
   </dependencies>
