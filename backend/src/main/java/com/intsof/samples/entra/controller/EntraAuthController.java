@@ -5,6 +5,7 @@ import com.intsof.samples.entra.service.JwtService;
 import com.intsof.samples.security.AuthenticationResult;
 import com.intsof.samples.security.EntraExternalIdSSOProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,15 @@ public class EntraAuthController {
     
     @Autowired
     private JwtService jwtService;
+    
+    @Value("${sso.registration.azure.client-id}")
+    private String clientId;
+    
+    @Value("${sso.registration.azure.tenant-id}")
+    private String tenantId;
+    
+    @Value("${sso.provider.azure.authorization-uri:https://login.microsoftonline.com/}")
+    private String authorizationUri;
     
     /**
      * Handle OAuth callback from Entra External ID
@@ -134,11 +144,14 @@ public class EntraAuthController {
      * Build authorization URL for Entra External ID
      */
     private String buildAuthorizationUrl(String redirectUri, String state) {
-        // This would typically use MSAL4J to build the URL or construct it manually
-        // For demo purposes, returning a placeholder URL
+        // Build the authorization URL using actual configuration values
         StringBuilder url = new StringBuilder();
-        url.append("https://login.microsoftonline.com/TENANT_ID/oauth2/v2.0/authorize");
-        url.append("?client_id=CLIENT_ID");
+        url.append(authorizationUri);
+        if (!authorizationUri.endsWith("/")) {
+            url.append("/");
+        }
+        url.append(tenantId).append("/oauth2/v2.0/authorize");
+        url.append("?client_id=").append(clientId);
         url.append("&response_type=code");
         url.append("&redirect_uri=").append(redirectUri);
         url.append("&scope=openid%20profile%20email");

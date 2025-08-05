@@ -189,6 +189,19 @@ public class AuthenticationFilter implements Filter {
             res.setStatus(HttpServletResponse.SC_OK);
             res.getWriter().write(toJson(tokenResponse));
         } else {
+            // Check if SSO redirect is required
+            if (result.getMessage() != null && result.getMessage().startsWith("SSO_REDIRECT_REQUIRED")) {
+                // User needs to authenticate via SSO OAuth flow
+                Map<String, Object> auditData = new HashMap<>();
+                auditData.put("reason", "sso_redirect_required");
+                auditData.put("authMethod", "SSO");
+                auditLoggingService.logAuthEvent("SSO_REDIRECT_REQUIRED", email, ipAddress, auditData);
+                
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.getWriter().write("{\"error\": \"SSO_REDIRECT_REQUIRED\", \"redirect_url\": \"/auth/entra/authorization-url\", \"message\": \"Please use SSO to authenticate\"}");
+                return;
+            }
+            
             // Record failed attempt for rate limiting
             rateLimitingService.recordFailedAttempt(ipAddress, email);
             

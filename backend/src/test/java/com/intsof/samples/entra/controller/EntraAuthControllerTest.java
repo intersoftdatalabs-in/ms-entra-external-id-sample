@@ -46,6 +46,19 @@ public class EntraAuthControllerTest {
             java.lang.reflect.Field jwtField = EntraAuthController.class.getDeclaredField("jwtService");
             jwtField.setAccessible(true);
             jwtField.set(controller, jwtService);
+            
+            // Inject configuration values
+            java.lang.reflect.Field clientIdField = EntraAuthController.class.getDeclaredField("clientId");
+            clientIdField.setAccessible(true);
+            clientIdField.set(controller, "test-client-id");
+            
+            java.lang.reflect.Field tenantIdField = EntraAuthController.class.getDeclaredField("tenantId");
+            tenantIdField.setAccessible(true);
+            tenantIdField.set(controller, "test-tenant-id");
+            
+            java.lang.reflect.Field authUriField = EntraAuthController.class.getDeclaredField("authorizationUri");
+            authUriField.setAccessible(true);
+            authUriField.set(controller, "https://login.microsoftonline.com/");
         } catch (Exception e) {
             fail("Failed to inject mocks");
         }

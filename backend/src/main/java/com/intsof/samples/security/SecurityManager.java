@@ -33,7 +33,25 @@ public class SecurityManager {
      * @return the result of the authentication
      */
     public AuthenticationResult authenticate(String email, String password) {
-        return getSecurityProvider(email).authenticate(email, password);
+        ISecurityProvider provider = getSecurityProvider(email);
+        
+        // Check if this is an SSO provider that doesn't support direct authentication
+        if (provider instanceof EntraExternalIdSSOProvider) {
+            return new AuthenticationResult(false, null, 
+                "SSO_REDIRECT_REQUIRED: User must authenticate via SSO OAuth flow");
+        }
+        
+        return provider.authenticate(email, password);
+    }
+
+    /**
+     * Checks if a user's domain requires SSO authentication
+     *
+     * @param email the user's email
+     * @return true if SSO is required, false otherwise
+     */
+    public boolean requiresSSO(String email) {
+        return getSecurityProvider(email) instanceof EntraExternalIdSSOProvider;
     }
 
     public ISecurityProvider getSecurityProvider(String email) {

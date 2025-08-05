@@ -10,6 +10,8 @@ import { throwError, Observable } from 'rxjs';
 export class AuthService {
 
   private loginUrl = 'http://localhost:8080/login';
+  private authCheckUrl = 'http://localhost:8080/auth/check-method';
+  private entraAuthUrl = 'http://localhost:8080/auth/entra/authorization-url';
 
   constructor(private http: HttpClient) {}
 
@@ -29,6 +31,56 @@ export class AuthService {
       }),
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * Check if user's email domain requires SSO authentication
+   */
+  checkAuthMethod(email: string): Observable<any> {
+    return this.http.post(this.authCheckUrl, null, {
+      params: { email: email }
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get authorization URL for SSO authentication
+   */
+  getAuthorizationUrl(redirectUri: string, state?: string): Observable<any> {
+    let params: any = { redirect_uri: redirectUri };
+    if (state) {
+      params.state = state;
+    }
+    
+    return this.http.get(this.entraAuthUrl, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Handle SSO redirect - redirect user to Microsoft login
+   */
+  initiateSSO(email: string): void {
+    const redirectUri = `${window.location.origin}/auth/callback`;
+    const state = Math.random().toString(36).substring(2, 15);
+    
+    this.getAuthorizationUrl(redirectUri, state).subscribe({
+      next: (response: any) => {
+        if (response.authorization_url) {
+          // Store state and email for validation after redirect
+          sessionStorage.setItem('sso_state', state);
+          sessionStorage.setItem('sso_email', email);
+          
+          // Redirect to Microsoft login
+          window.location.href = response.authorization_url;
+        }
+      },
+      error: (err) => {
+        console.error('Failed to get authorization URL:', err);
+        alert('Failed to initiate SSO login');
+      }
+    });
   }
 
   getAccessToken(): string | null {
