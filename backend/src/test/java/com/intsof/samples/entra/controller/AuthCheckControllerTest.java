@@ -44,7 +44,7 @@ public class AuthCheckControllerTest {
     
     @Test
     public void testCheckAuthMethod_SSORequired() {
-        ResponseEntity<?> response = controller.checkAuthMethod("test@gmail.com");
+        ResponseEntity<?> response = controller.checkAuthMethod("test@gmail.com", null);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof Map);
@@ -59,7 +59,7 @@ public class AuthCheckControllerTest {
     
     @Test
     public void testCheckAuthMethod_PasswordRequired() {
-        ResponseEntity<?> response = controller.checkAuthMethod("test@example.com");
+        ResponseEntity<?> response = controller.checkAuthMethod("test@example.com", null);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof Map);
@@ -74,7 +74,7 @@ public class AuthCheckControllerTest {
     
     @Test
     public void testCheckAuthMethod_MissingEmail() {
-        ResponseEntity<?> response = controller.checkAuthMethod("");
+        ResponseEntity<?> response = controller.checkAuthMethod("", null);
         
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertTrue(response.getBody() instanceof Map);
@@ -86,7 +86,7 @@ public class AuthCheckControllerTest {
     
     @Test
     public void testCheckAuthMethod_NullEmail() {
-        ResponseEntity<?> response = controller.checkAuthMethod(null);
+        ResponseEntity<?> response = controller.checkAuthMethod(null, null);
         
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertTrue(response.getBody() instanceof Map);
@@ -98,7 +98,7 @@ public class AuthCheckControllerTest {
     
     @Test
     public void testCheckAuthMethod_MicrosoftDomain() {
-        ResponseEntity<?> response = controller.checkAuthMethod("user@microsoft.com");
+        ResponseEntity<?> response = controller.checkAuthMethod("user@microsoft.com", null);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof Map);

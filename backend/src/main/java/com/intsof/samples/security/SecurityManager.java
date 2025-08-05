@@ -53,6 +53,24 @@ public class SecurityManager {
     public boolean requiresSSO(String email) {
         return getSecurityProvider(email) instanceof EntraExternalIdSSOProvider;
     }
+    
+    /**
+     * Gets SSO initialization information for the user's domain
+     *
+     * @param email the user's email
+     * @return AuthenticationResult with SSO redirect information
+     */
+    public AuthenticationResult initializeSSO(String email) {
+        ISecurityProvider provider = getSecurityProvider(email);
+        
+        if (provider instanceof EntraExternalIdSSOProvider) {
+            return new AuthenticationResult(false, null, 
+                "SSO_REDIRECT_REQUIRED: User must authenticate via SSO OAuth flow");
+        }
+        
+        return new AuthenticationResult(false, null, 
+            "SSO not configured for this domain");
+    }
 
     public ISecurityProvider getSecurityProvider(String email) {
         return domainProviderMap.getOrDefault(extractDomain(email), defaultProvider);

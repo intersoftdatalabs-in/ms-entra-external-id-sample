@@ -30,7 +30,16 @@ public class AuthCheckController {
      * Check if user's domain requires SSO authentication
      */
     @PostMapping("/check-method")
-    public ResponseEntity<?> checkAuthMethod(@RequestParam("email") String email) {
+    public ResponseEntity<?> checkAuthMethod(
+            @RequestParam(value = "email", required = false) String emailParam,
+            @RequestBody(required = false) Map<String, String> requestBody) {
+        
+        // Accept email from either query parameter or request body
+        String email = emailParam;
+        if (email == null && requestBody != null) {
+            email = requestBody.get("email");
+        }
+        
         if (email == null || email.trim().isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("error", "Email is required");

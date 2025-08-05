@@ -48,6 +48,19 @@ public class AuthenticationFilter implements Filter {
 
     private static final String LOGIN_PATH = "/login";
     private static final String LOGOUT_PATH = "/logout";
+    
+    /**
+     * Check if a path is whitelisted and doesn't require authentication
+     */
+    private boolean isWhitelistedPath(String path) {
+        return LOGIN_PATH.equals(path) || 
+               "/refresh".equals(path) || 
+               LOGOUT_PATH.equals(path) ||
+               "/auth/check-method".equals(path) ||
+               "/auth/entra/authorization-url".equals(path) ||
+               "/auth/entra/callback".equals(path) ||
+               "/auth/entra/validate".equals(path);
+    }
 
     private SecurityManager securityManager;
 
@@ -82,8 +95,8 @@ public class AuthenticationFilter implements Filter {
         String method = req.getMethod();
         String ipAddress = getClientIpAddress(req);
 
-        // JWT validation for protected routes
-        if (!LOGIN_PATH.equals(path) && !"/refresh".equals(path) && !LOGOUT_PATH.equals(path)) {
+        // JWT validation for protected routes - skip authentication endpoints
+        if (!isWhitelistedPath(path)) {
             String authHeader = req.getHeader("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
@@ -137,6 +150,12 @@ public class AuthenticationFilter implements Filter {
 
         // Allow logout to pass through for GET requests (legacy support)
         if (LOGOUT_PATH.equals(path)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Allow whitelisted paths to pass through to controllers
+        if (isWhitelistedPath(path)) {
             chain.doFilter(request, response);
             return;
         }
@@ -197,8 +216,8 @@ public class AuthenticationFilter implements Filter {
                 auditData.put("authMethod", "SSO");
                 auditLoggingService.logAuthEvent("SSO_REDIRECT_REQUIRED", email, ipAddress, auditData);
                 
-                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                res.getWriter().write("{\"error\": \"SSO_REDIRECT_REQUIRED\", \"redirect_url\": \"/auth/entra/authorization-url\", \"message\": \"Please use SSO to authenticate\"}");
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Keep 401 for backward compatibility
+                res.getWriter().write("{\"error\": \"SSO_REDIRECT_REQUIRED\", \"requiresSSO\": true, \"authMethod\": \"SSO\", \"authorizationUrl\": \"/auth/entra/authorization-url\", \"message\": \"This email domain requires SSO authentication. Please use the authorization URL to authenticate.\"}");
                 return;
             }
             
