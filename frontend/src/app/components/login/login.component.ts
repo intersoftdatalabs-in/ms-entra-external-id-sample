@@ -24,9 +24,11 @@ export class LoginComponent {
       next: response => {
         if (response.error) {
           this.errorMessage = response.error;
-        } else {
+        } else if (this.authService.isAuthenticated()) {
           this.errorMessage = '';
-          this.router.navigate(['/welcome'], { state: { email: response.email } });
+          this.router.navigate(['/welcome'], { state: { email: this.email } });
+        } else {
+          this.errorMessage = 'Login failed.';
         }
       },
       error: (err: HttpErrorResponse) => {

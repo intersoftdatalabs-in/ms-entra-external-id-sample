@@ -1,4 +1,4 @@
-This project is a sample project of an application with an Angular 19.x front end and a Spring Boot 3.x backend. It is designed to demonstrate the integration of these technologies.
+This project is a sample project of an application with an Angular 19.x front end and a Spring Boot 3.x backend targeting Java 17. It is designed to demonstrate the integration of these technologies.
 
 The application includes a simple user interface that allows users to interact with the backend services. The backend is built using Spring Boot, providing RESTful APIs for the frontend to consume.
 
@@ -14,6 +14,9 @@ MS Entra External ID is used for user authentication and authorization, allowing
 - `pom.xml`: Maven configuration file for the backend.
 - `package.json`: NPM configuration file for the frontend.
 - `README.md`: Project documentation.
+- `docs/`: Contains documentation files for the project.
+- `plans/`: Contains open or in-progress plans for the project.
+- `plans/completed/`: Contains completed plans for the project.
 
 # Authentication and Authorization
  - Front end calls the backend for authentication and authorization.
