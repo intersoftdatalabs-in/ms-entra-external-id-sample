@@ -2,6 +2,7 @@ package com.intsof.samples.security;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.intsof.samples.security.EntraExternalIdSSOProvider;
 
 /**
  * SecurityManager selects the appropriate SecurityProvider based on email domain.
@@ -18,7 +19,7 @@ public class SecurityManager {
     /**
      * Registers a provider for a specific email domain.
      *
-     * @param domain the email domain (e.g., "company.com")
+     * @param domain   the email domain (e.g., "company.com")
      * @param provider the SecurityProvider implementation
      */
     public void registerProvider(String domain, ISecurityProvider provider) {
@@ -28,59 +29,31 @@ public class SecurityManager {
     /**
      * Authenticates a user by selecting the appropriate provider based on email domain.
      *
-     * @param email the user's email
+     * @param email    the user's email
      * @param password the password or token
      * @return the result of the authentication
      */
     public AuthenticationResult authenticate(String email, String password) {
         ISecurityProvider provider = getSecurityProvider(email);
-        
-        // Check if this is an SSO provider that doesn't support direct authentication
-        if (provider instanceof EntraExternalIdSSOProvider) {
-            return new AuthenticationResult(false, null, 
-                "SSO_REDIRECT_REQUIRED: User must authenticate via SSO OAuth flow");
-        }
-        
         return provider.authenticate(email, password);
     }
 
     /**
-     * Checks if a user's domain requires SSO authentication
-     *
-     * @param email the user's email
-     * @return true if SSO is required, false otherwise
+     * Determine if the given email should be authenticated via SSO.
      */
     public boolean requiresSSO(String email) {
         return getSecurityProvider(email) instanceof EntraExternalIdSSOProvider;
     }
-    
-    /**
-     * Gets SSO initialization information for the user's domain
-     *
-     * @param email the user's email
-     * @return AuthenticationResult with SSO redirect information
-     */
-    public AuthenticationResult initializeSSO(String email) {
-        ISecurityProvider provider = getSecurityProvider(email);
-        
-        if (provider instanceof EntraExternalIdSSOProvider) {
-            return new AuthenticationResult(false, null, 
-                "SSO_REDIRECT_REQUIRED: User must authenticate via SSO OAuth flow");
-        }
-        
-        return new AuthenticationResult(false, null, 
-            "SSO not configured for this domain");
-    }
 
+    /**
+     * Gets the provider responsible for the given email.
+     */
     public ISecurityProvider getSecurityProvider(String email) {
         return domainProviderMap.getOrDefault(extractDomain(email), defaultProvider);
     }
 
     /**
-     * Extracts the domain from an email address.
-     *
-     * @param email the email address
-     * @return the domain part of the email
+     * Extracts domain part from email.
      */
     private String extractDomain(String email) {
         int atIndex = email.lastIndexOf('@');
