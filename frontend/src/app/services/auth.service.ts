@@ -13,7 +13,32 @@ export class AuthService {
   private authCheckUrl = 'http://localhost:8080/auth/check-method';
   private entraAuthUrl = 'http://localhost:8080/auth/entra/authorization-url';
 
-  constructor(private http: HttpClient) {}
+  // Holds the SSO configuration once retrieved from the backend
+  private ssoConfig: any | null = null;
+
+  constructor(private http: HttpClient) {
+    // Eagerly fetch SSO configuration so that UI components can react dynamically
+    this.loadSsoConfig();
+  }
+
+  /**
+   * Retrieve SSO configuration from the backend.
+   */
+  private loadSsoConfig(): void {
+    this.http.get('http://localhost:8080/api/sso/config').subscribe({
+      next: (config) => {
+        this.ssoConfig = config;
+      },
+      error: err => console.error('Failed to load SSO configuration', err)
+    });
+  }
+
+  /**
+   * Expose the last retrieved SSO configuration to callers.
+   */
+  getSsoConfig(): any | null {
+    return this.ssoConfig;
+  }
 
   login(email: string, password: string): Observable<any> {
     const headers = {
@@ -62,21 +87,38 @@ export class AuthService {
    * Handle SSO redirect - redirect user to Microsoft login
    */
   initiateSSO(email: string): void {
+    // If we already have the SSO configuration we can build the authorization URL
+    if (this.ssoConfig) {
+      const state = Math.random().toString(36).substring(2, 15);
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: this.ssoConfig.clientId || '',
+        redirect_uri: this.ssoConfig.redirectUri,
+        scope: (this.ssoConfig.scopes || []).join(' '),
+        state,
+        login_hint: email
+      });
+
+      // Store state & email before redirect
+      sessionStorage.setItem('sso_state', state);
+      sessionStorage.setItem('sso_email', email);
+
+      window.location.href = `${this.ssoConfig.authorizationEndpoint}?${params.toString()}`;
+      return;
+    }
+
+    // Fallback: request backend to compute URL (legacy flow)
     const redirectUri = `${window.location.origin}/auth/callback`;
-    const state = Math.random().toString(36).substring(2, 15);
-    
-    this.getAuthorizationUrl(redirectUri, state).subscribe({
+    const fallbackState = Math.random().toString(36).substring(2, 15);
+    this.getAuthorizationUrl(redirectUri, fallbackState).subscribe({
       next: (response: any) => {
         if (response.authorization_url) {
-          // Store state and email for validation after redirect
-          sessionStorage.setItem('sso_state', state);
+          sessionStorage.setItem('sso_state', fallbackState);
           sessionStorage.setItem('sso_email', email);
-          
-          // Redirect to Microsoft login
           window.location.href = response.authorization_url;
         }
       },
-      error: (err) => {
+      error: err => {
         console.error('Failed to get authorization URL:', err);
         alert('Failed to initiate SSO login');
       }

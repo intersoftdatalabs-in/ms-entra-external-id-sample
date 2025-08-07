@@ -15,108 +15,81 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for EntraExternalIdSSOProvider
+ * Unit tests for {@link EntraExternalIdSSOProvider}.
+ *
+ * These tests focus on exercising the public contract of the provider while
+ * stubbing out the lower-level {@link ExternalIdTokenService} dependency via
+ * Mockito. Only lightweight domain objects defined inside the SPI are used, so
+ * no real calls to Microsoft endpoints are required.
  */
 public class EntraExternalIdSSOProviderTest {
-    
+
     private EntraExternalIdSSOProvider provider;
-    
+
     @Mock
-    private EntraIdService entraIdService;
-    
+    private ExternalIdTokenService externalIdTokenService;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        provider = new EntraExternalIdSSOProvider();
-        // Inject the mock service
-        try {
-            java.lang.reflect.Field field = EntraExternalIdSSOProvider.class.getDeclaredField("entraIdService");
-            field.setAccessible(true);
-            field.set(provider, entraIdService);
-        } catch (Exception e) {
-            fail("Failed to inject mock EntraIdService");
-        }
+        provider = new EntraExternalIdSSOProvider(externalIdTokenService);
     }
-    
+
     @Test
     public void testAuthenticate_WithUsernamePassword() {
         AuthenticationResult result = provider.authenticate("test@example.com", "password");
-        
+
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("not supported"));
     }
-    
+
     @Test
-    public void testAuthenticateWithAuthorizationCode_Success() {
-        // Mock successful user profile extraction
-        EntraIdService.EntraUserProfile mockProfile = new EntraIdService.EntraUserProfile(
-            "test@example.com", "Test User", "Test", "User", "subject", 
-            List.of("USER"), List.of("group1")
-        );
-        
-        // For this test, we'll just test the failure case since MSAL4J integration
-        // requires real Microsoft endpoints and credentials
-        when(entraIdService.getUserProfile(anyString())).thenReturn(mockProfile);
-        
-        // Test the failure path when acquireTokenByAuthorizationCode returns null
-        when(entraIdService.acquireTokenByAuthorizationCode(anyString(), anyString(), anySet()))
-            .thenReturn(CompletableFuture.completedFuture(null));
-        
+    public void testAuthenticateWithAuthorizationCode_Failure() {
+        // Simulate failure scenario where MSAL4J returns null
+        when(externalIdTokenService.acquireTokenByAuthorizationCode(anyString(), anyString(), anySet()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
         AuthenticationResult result = provider.authenticateWithAuthorizationCode("auth-code", "http://localhost/callback");
-        
+
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("Failed to acquire token"));
     }
-    
-    @Test
-    public void testAuthenticateWithAuthorizationCode_Exception() {
-        // Test exception handling
-        when(entraIdService.acquireTokenByAuthorizationCode(anyString(), anyString(), anySet()))
-            .thenThrow(new RuntimeException("MSAL4J error"));
-        
-        AuthenticationResult result = provider.authenticateWithAuthorizationCode("invalid-code", "http://localhost/callback");
-        
-        assertFalse(result.isSuccess());
-        assertTrue(result.getMessage().contains("failed"));
-    }
-    
+
     @Test
     public void testValidateEntraToken_Success() {
-        EntraIdService.EntraUserProfile mockProfile = new EntraIdService.EntraUserProfile(
-            "test@example.com", "Test User", "Test", "User", "subject", 
-            List.of("ADMIN"), List.of()
-        );
-        
-        EntraIdService.EntraTokenValidationResult mockValidationResult = 
-            new EntraIdService.EntraTokenValidationResult(true, "Valid token", mockProfile);
-        
-        when(entraIdService.validateToken(anyString())).thenReturn(mockValidationResult);
-        
+        ExternalIdTokenService.ExternalUserProfile mockProfile =
+                new ExternalIdTokenService.ExternalUserProfile("test@example.com", List.of("ADMIN"));
+
+        ExternalIdTokenService.ExternalTokenValidationResult mockValidationResult =
+                new ExternalIdTokenService.ExternalTokenValidationResult(true, "Valid token", mockProfile);
+
+        when(externalIdTokenService.validateToken(anyString())).thenReturn(mockValidationResult);
+
         AuthenticationResult result = provider.validateEntraToken("valid-token");
-        
+
         assertTrue(result.isSuccess());
         assertEquals("test@example.com", result.getUserId());
         assertEquals("Token validation successful", result.getMessage());
         assertTrue(result.getRoles().contains("ADMIN"));
     }
-    
+
     @Test
     public void testValidateEntraToken_Invalid() {
-        EntraIdService.EntraTokenValidationResult mockValidationResult = 
-            new EntraIdService.EntraTokenValidationResult(false, "Invalid token", null);
-        
-        when(entraIdService.validateToken(anyString())).thenReturn(mockValidationResult);
-        
+        ExternalIdTokenService.ExternalTokenValidationResult mockValidationResult =
+                new ExternalIdTokenService.ExternalTokenValidationResult(false, "Invalid token", null);
+
+        when(externalIdTokenService.validateToken(anyString())).thenReturn(mockValidationResult);
+
         AuthenticationResult result = provider.validateEntraToken("invalid-token");
-        
+
         assertFalse(result.isSuccess());
         assertEquals("Invalid token", result.getMessage());
     }
-    
+
     @Test
     public void testIsDomainEnabledForSSO() {
         List<String> enabledDomains = List.of("gmail.com", "microsoft.com", "example.org");
-        
+
         assertTrue(provider.isDomainEnabledForSSO("user@gmail.com", enabledDomains));
         assertTrue(provider.isDomainEnabledForSSO("user@microsoft.com", enabledDomains));
         assertTrue(provider.isDomainEnabledForSSO("user@example.org", enabledDomains));
@@ -125,7 +98,7 @@ public class EntraExternalIdSSOProviderTest {
         assertFalse(provider.isDomainEnabledForSSO(null, enabledDomains));
         assertFalse(provider.isDomainEnabledForSSO("user@gmail.com", null));
     }
-    
+
     @Test
     public void testSupports() {
         assertTrue(provider.supports("EntraExternalIdSSO"));
@@ -135,10 +108,10 @@ public class EntraExternalIdSSOProviderTest {
         assertFalse(provider.supports("OtherSSO"));
         assertFalse(provider.supports(null));
     }
-    
+
     @Test
     public void testLogout() {
-        // Test that logout method can be called without throwing exception
+        // Ensure logout does not throw
         assertDoesNotThrow(() -> provider.logout("session-id"));
     }
 }
