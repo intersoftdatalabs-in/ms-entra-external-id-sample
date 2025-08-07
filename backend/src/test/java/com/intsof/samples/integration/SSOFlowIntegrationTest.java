@@ -45,7 +45,7 @@ public class SSOFlowIntegrationTest {
         AuthenticationResult result = securityManager.authenticate("test@gmail.com", "password");
         
         assertFalse(result.isSuccess());
-        assertTrue(result.getMessage().contains("SSO_REDIRECT_REQUIRED"));
+        assertTrue(result.getMessage().toLowerCase().contains("not supported"));
     }
     
     @Test

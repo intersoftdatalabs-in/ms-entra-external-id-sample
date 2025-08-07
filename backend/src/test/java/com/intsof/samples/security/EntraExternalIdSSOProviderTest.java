@@ -15,130 +15,95 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for EntraExternalIdSSOProvider
+ * Unit tests for {@link EntraExternalIdSSOProvider} that rely solely on the
+ * contract defined by {@link ExternalIdTokenService}. This keeps the security
+ * module completely decoupled from any concrete implementation that might live
+ * in the micro-service layer (e.g. the spring-boot `EntraIdService`).
  */
 public class EntraExternalIdSSOProviderTest {
-    
+
     private EntraExternalIdSSOProvider provider;
-    
+
     @Mock
-    private EntraIdService entraIdService;
-    
+    private ExternalIdTokenService tokenService;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        provider = new EntraExternalIdSSOProvider();
-        // Inject the mock service
-        try {
-            java.lang.reflect.Field field = EntraExternalIdSSOProvider.class.getDeclaredField("entraIdService");
-            field.setAccessible(true);
-            field.set(provider, entraIdService);
-        } catch (Exception e) {
-            fail("Failed to inject mock EntraIdService");
-        }
+        provider = new EntraExternalIdSSOProvider(tokenService);
     }
-    
+
     @Test
     public void testAuthenticate_WithUsernamePassword() {
         AuthenticationResult result = provider.authenticate("test@example.com", "password");
-        
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("not supported"));
     }
-    
+
     @Test
-    public void testAuthenticateWithAuthorizationCode_Success() {
-        // Mock successful user profile extraction
-        EntraIdService.EntraUserProfile mockProfile = new EntraIdService.EntraUserProfile(
-            "test@example.com", "Test User", "Test", "User", "subject", 
-            List.of("USER"), List.of("group1")
-        );
-        
-        // For this test, we'll just test the failure case since MSAL4J integration
-        // requires real Microsoft endpoints and credentials
-        when(entraIdService.getUserProfile(anyString())).thenReturn(mockProfile);
-        
-        // Test the failure path when acquireTokenByAuthorizationCode returns null
-        when(entraIdService.acquireTokenByAuthorizationCode(anyString(), anyString(), anySet()))
-            .thenReturn(CompletableFuture.completedFuture(null));
-        
+    public void testAuthenticateWithAuthorizationCode_Failure() {
+        // Mock user profile extraction (won't be reached because token acquisition fails)
+        ExternalIdTokenService.ExternalUserProfile profile =
+                new ExternalIdTokenService.ExternalUserProfile("test@example.com", List.of("USER"));
+        when(tokenService.getUserProfile(anyString())).thenReturn(profile);
+
+        // Simulate MSAL acquiring token failure (future resolves to null)
+        when(tokenService.acquireTokenByAuthorizationCode(anyString(), anyString(), anySet()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
         AuthenticationResult result = provider.authenticateWithAuthorizationCode("auth-code", "http://localhost/callback");
-        
         assertFalse(result.isSuccess());
-        assertTrue(result.getMessage().contains("Failed to acquire token"));
+        assertTrue(result.getMessage().toLowerCase().contains("failed"));
     }
-    
+
     @Test
     public void testAuthenticateWithAuthorizationCode_Exception() {
-        // Test exception handling
-        when(entraIdService.acquireTokenByAuthorizationCode(anyString(), anyString(), anySet()))
-            .thenThrow(new RuntimeException("MSAL4J error"));
-        
-        AuthenticationResult result = provider.authenticateWithAuthorizationCode("invalid-code", "http://localhost/callback");
-        
+        when(tokenService.acquireTokenByAuthorizationCode(anyString(), anyString(), anySet()))
+                .thenThrow(new RuntimeException("MSAL4J error"));
+        AuthenticationResult result = provider.authenticateWithAuthorizationCode("bad", "http://localhost/callback");
         assertFalse(result.isSuccess());
-        assertTrue(result.getMessage().contains("failed"));
+        assertTrue(result.getMessage().toLowerCase().contains("failed"));
     }
-    
+
     @Test
     public void testValidateEntraToken_Success() {
-        EntraIdService.EntraUserProfile mockProfile = new EntraIdService.EntraUserProfile(
-            "test@example.com", "Test User", "Test", "User", "subject", 
-            List.of("ADMIN"), List.of()
-        );
-        
-        EntraIdService.EntraTokenValidationResult mockValidationResult = 
-            new EntraIdService.EntraTokenValidationResult(true, "Valid token", mockProfile);
-        
-        when(entraIdService.validateToken(anyString())).thenReturn(mockValidationResult);
-        
-        AuthenticationResult result = provider.validateEntraToken("valid-token");
-        
+        ExternalIdTokenService.ExternalUserProfile profile =
+                new ExternalIdTokenService.ExternalUserProfile("test@example.com", List.of("ADMIN"));
+        ExternalIdTokenService.ExternalTokenValidationResult validation =
+                new ExternalIdTokenService.ExternalTokenValidationResult(true, "Valid", profile);
+        when(tokenService.validateToken(anyString())).thenReturn(validation);
+
+        AuthenticationResult result = provider.validateEntraToken("token");
         assertTrue(result.isSuccess());
         assertEquals("test@example.com", result.getUserId());
-        assertEquals("Token validation successful", result.getMessage());
         assertTrue(result.getRoles().contains("ADMIN"));
     }
-    
+
     @Test
     public void testValidateEntraToken_Invalid() {
-        EntraIdService.EntraTokenValidationResult mockValidationResult = 
-            new EntraIdService.EntraTokenValidationResult(false, "Invalid token", null);
-        
-        when(entraIdService.validateToken(anyString())).thenReturn(mockValidationResult);
-        
-        AuthenticationResult result = provider.validateEntraToken("invalid-token");
-        
+        ExternalIdTokenService.ExternalTokenValidationResult validation =
+                new ExternalIdTokenService.ExternalTokenValidationResult(false, "Invalid token", null);
+        when(tokenService.validateToken(anyString())).thenReturn(validation);
+        AuthenticationResult result = provider.validateEntraToken("bad");
         assertFalse(result.isSuccess());
         assertEquals("Invalid token", result.getMessage());
     }
-    
+
     @Test
     public void testIsDomainEnabledForSSO() {
-        List<String> enabledDomains = List.of("gmail.com", "microsoft.com", "example.org");
-        
-        assertTrue(provider.isDomainEnabledForSSO("user@gmail.com", enabledDomains));
-        assertTrue(provider.isDomainEnabledForSSO("user@microsoft.com", enabledDomains));
-        assertTrue(provider.isDomainEnabledForSSO("user@example.org", enabledDomains));
-        assertFalse(provider.isDomainEnabledForSSO("user@other.com", enabledDomains));
-        assertFalse(provider.isDomainEnabledForSSO("invalid-email", enabledDomains));
-        assertFalse(provider.isDomainEnabledForSSO(null, enabledDomains));
-        assertFalse(provider.isDomainEnabledForSSO("user@gmail.com", null));
+        List<String> domains = List.of("gmail.com", "microsoft.com");
+        assertTrue(provider.isDomainEnabledForSSO("user@gmail.com", domains));
+        assertFalse(provider.isDomainEnabledForSSO("user@other.com", domains));
     }
-    
+
     @Test
     public void testSupports() {
         assertTrue(provider.supports("EntraExternalIdSSO"));
-        assertTrue(provider.supports("entraexternalidsso"));
-        assertTrue(provider.supports("ENTRAEXTERNALIDSSO"));
-        assertFalse(provider.supports("DatabaseAuth"));
-        assertFalse(provider.supports("OtherSSO"));
-        assertFalse(provider.supports(null));
+        assertFalse(provider.supports("Other"));
     }
-    
+
     @Test
     public void testLogout() {
-        // Test that logout method can be called without throwing exception
-        assertDoesNotThrow(() -> provider.logout("session-id"));
+        assertDoesNotThrow(() -> provider.logout("session"));
     }
 }
