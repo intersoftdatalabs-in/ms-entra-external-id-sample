@@ -177,5 +177,79 @@ ng test
 - Audit logs are written to `logs/audit.log` by default
 - Rate limiting and blacklisting are enabled by default
 
+## Consuming the Security Module
+
+The authentication and SSO logic has been extracted into a standalone library (`security-module`), which you can incorporate into other Spring Boot services.
+
+Add the following dependency to your `pom.xml`:
+
+```xml
+<dependency>
+  <groupId>com.intsof.samples.security</groupId>
+  <artifactId>security-module</artifactId>
+  <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+Implement the required SPIs in your application:
+
+```java
+import com.intsof.samples.security.spi.UserAuthenticationService;
+import com.intsof.samples.security.spi.ExternalIdTokenService;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UserAuthenticationServiceImpl implements UserAuthenticationService {
+    @Override
+    public boolean authenticate(String email, String password) {
+        // Your authentication logic (e.g., database lookup)
+        return yourUserService.authenticate(email, password);
+    }
+}
+
+@Component
+public class ExternalIdTokenServiceImpl implements ExternalIdTokenService {
+    @Override
+    public CompletableFuture<IAuthenticationResult> acquireTokenByAuthorizationCode(String code, String redirectUri, Set<String> scopes) {
+        // Your token acquisition logic
+        return yourEntraIdService.acquireTokenByAuthorizationCode(code, redirectUri, scopes);
+    }
+
+    @Override
+    public ExternalUserProfile getUserProfile(String accessToken) {
+        // Your profile extraction logic
+        return yourEntraIdService.getUserProfile(accessToken);
+    }
+
+    @Override
+    public ExternalTokenValidationResult validateToken(String token) {
+        // Your token validation logic
+        return yourEntraIdService.validateToken(token);
+    }
+}
+```
+
+Configure the `SecurityManager` bean:
+
+```java
+import com.intsof.samples.security.SecurityManager;
+import com.intsof.samples.security.DatabaseSecurityProvider;
+import com.intsof.samples.security.EntraExternalIdSSOProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class SecurityModuleConfig {
+    @Bean
+    public SecurityManager securityManager(DatabaseSecurityProvider dbProvider, EntraExternalIdSSOProvider ssoProvider) {
+        SecurityManager manager = new SecurityManager(dbProvider);
+        manager.registerProvider("your-sso-domain.com", ssoProvider);
+        return manager;
+    }
+}
+```
+
+Now you can autowire `SecurityManager` anywhere for authentication.
+
 ## Support
 For issues or questions, please open an issue in this repository.

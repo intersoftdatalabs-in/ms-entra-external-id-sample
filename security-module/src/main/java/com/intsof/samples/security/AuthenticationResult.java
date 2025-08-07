@@ -1,5 +1,6 @@
 package com.intsof.samples.security;
 
+import java.util.List;
 
 /**
  * Represents the result of an authentication attempt.
@@ -11,15 +12,15 @@ public class AuthenticationResult {
     private String accessToken;
     private String refreshToken;
     private long expiresIn;
-    private java.util.List<String> roles;
+    private List<String> roles;
 
     public AuthenticationResult(boolean success, String userId, String message) {
-        this.success = success;
-        this.userId = userId;
-        this.message = message;
+        this(success, userId, message, null, null, 0, null);
     }
 
-    public AuthenticationResult(boolean success, String userId, String message, String accessToken, String refreshToken, long expiresIn, java.util.List<String> roles) {
+    public AuthenticationResult(boolean success, String userId, String message,
+                                String accessToken, String refreshToken,
+                                long expiresIn, List<String> roles) {
         this.success = success;
         this.userId = userId;
         this.message = message;
@@ -53,7 +54,7 @@ public class AuthenticationResult {
         return expiresIn;
     }
 
-    public java.util.List<String> getRoles() {
+    public List<String> getRoles() {
         return roles;
     }
 }

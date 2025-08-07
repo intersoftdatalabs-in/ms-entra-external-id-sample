@@ -1,6 +1,6 @@
 package com.intsof.samples.security;
 
-import com.intsof.samples.entra.service.EntraIdService;
+import com.intsof.samples.security.spi.ExternalIdTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

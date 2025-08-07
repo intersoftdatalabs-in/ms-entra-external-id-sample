@@ -4,7 +4,8 @@ import com.intsof.samples.security.SecurityManager;
 import com.intsof.samples.security.DatabaseSecurityProvider;
 import com.intsof.samples.security.EntraExternalIdSSOProvider;
 import com.intsof.samples.security.AuthenticationResult;
-import com.intsof.samples.entra.service.UserService;
+import com.intsof.samples.security.spi.UserAuthenticationService;
+import com.intsof.samples.security.spi.ExternalIdTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -18,7 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SSOFlowIntegrationTest {
     
     @Mock
-    private UserService userService;
+    private UserAuthenticationService userAuthService;
+
+    @Mock
+    private ExternalIdTokenService externalIdTokenService;
     
     private SecurityManager securityManager;
     
@@ -27,8 +31,8 @@ public class SSOFlowIntegrationTest {
         MockitoAnnotations.openMocks(this);
         
         // Set up security manager with both providers
-        DatabaseSecurityProvider dbProvider = new DatabaseSecurityProvider(userService);
-        EntraExternalIdSSOProvider ssoProvider = new EntraExternalIdSSOProvider();
+        DatabaseSecurityProvider dbProvider = new DatabaseSecurityProvider(userAuthService);
+        EntraExternalIdSSOProvider ssoProvider = new EntraExternalIdSSOProvider(externalIdTokenService);
         
         securityManager = new SecurityManager(dbProvider);
         securityManager.registerProvider("gmail.com", ssoProvider);

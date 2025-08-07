@@ -1,7 +1,6 @@
 package com.intsof.samples.entra.filter;
 
 import com.intsof.samples.entra.constants.ApplicationConstants;
-import com.intsof.samples.entra.service.UserService;
 import com.intsof.samples.entra.service.JwtService;
 import com.intsof.samples.entra.service.RateLimitingService;
 import com.intsof.samples.entra.service.AuditLoggingService;
@@ -65,15 +64,18 @@ public class AuthenticationFilter implements Filter {
     private SecurityManager securityManager;
 
     @Autowired
-    private UserService userService;
+    private DatabaseSecurityProvider dbProvider;
+
+    @Autowired
+    private EntraExternalIdSSOProvider ssoProvider;
 
     @Value("${sso.enabled-domains}")
     private List<String> ssoEnabledDomains;
 
     @Override
     public void init(FilterConfig filterConfig) {
-        ISecurityProvider dbProvider = new DatabaseSecurityProvider(userService);
-        ISecurityProvider ssoProvider = new EntraExternalIdSSOProvider();
+        ISecurityProvider dbProvider = this.dbProvider;
+        ISecurityProvider ssoProvider = this.ssoProvider;
 
         this.securityManager = new SecurityManager(dbProvider);
 

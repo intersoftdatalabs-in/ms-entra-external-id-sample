@@ -1,7 +1,6 @@
 package com.intsof.samples.entra.controller;
 
 import com.intsof.samples.security.SecurityManager;
-import com.intsof.samples.entra.service.UserService;
 import com.intsof.samples.security.DatabaseSecurityProvider;
 import com.intsof.samples.security.EntraExternalIdSSOProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,10 @@ import java.util.Map;
 public class AuthCheckController {
 
     @Autowired
-    private UserService userService;
+    private DatabaseSecurityProvider dbProvider;
+
+    @Autowired
+    private EntraExternalIdSSOProvider ssoProvider;
 
     @Value("${sso.enabled-domains}")
     private List<String> ssoEnabledDomains;
@@ -46,9 +48,7 @@ public class AuthCheckController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Create a temporary SecurityManager to check domain requirements
-        DatabaseSecurityProvider dbProvider = new DatabaseSecurityProvider(userService);
-        EntraExternalIdSSOProvider ssoProvider = new EntraExternalIdSSOProvider();
+        // Create a temporary SecurityManager to check domain requirements using injected providers
         SecurityManager securityManager = new SecurityManager(dbProvider);
 
         if (ssoEnabledDomains != null && !ssoEnabledDomains.isEmpty()) {
