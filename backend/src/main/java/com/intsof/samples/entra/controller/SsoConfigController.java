@@ -45,11 +45,16 @@ public class SsoConfigController {
         String tokenEndpoint = props.getProvider().getTokenUri();
         String redirectUri = props.getRegistration().getAzure().getRedirectUri();
 
-        // Split scopes on either comma or space and trim blanks
+        // Split scopes on whitespace or comma and trim blanks
         String scopesRaw = props.getRegistration().getAzure().getScope();
-        List<String> scopes = scopesRaw == null ? List.of() : Arrays.stream(scopesRaw.split("[ ,]+"))
-                .filter(s -> !s.isBlank())
-                .collect(Collectors.toList());
+        List<String> scopes;
+        if (!StringUtils.hasText(scopesRaw)) {
+            scopes = List.of();
+        } else {
+            scopes = Arrays.stream(scopesRaw.split("[\\s,]+"))
+                    .filter(s -> !s.isBlank())
+                    .collect(Collectors.toList());
+        }
 
         String clientId = props.getRegistration().getAzure().getClientId();
 
