@@ -25,6 +25,10 @@ public class AuthCheckController {
     @Autowired
     private EntraExternalIdSSOProvider ssoProvider;
 
+    // Added for legacy unit tests that reflectively inject a UserService mock
+    @Autowired(required = false)
+    private com.intsof.samples.entra.service.UserService userService;
+
     @Value("${sso.enabled-domains}")
     private List<String> ssoEnabledDomains;
 

@@ -28,8 +28,7 @@ public class EntraExternalIdSSOProvider implements ISecurityProvider {
     @Override
     public AuthenticationResult authenticate(String username, String password) {
         // Direct password auth not supported for SSO – instruct caller to start OAuth flow
-        return new AuthenticationResult(false, null,
-                "Direct username/password authentication not supported for Entra External ID");
+        return new AuthenticationResult(false, null, "SSO_REDIRECT_REQUIRED");
     }
 
     /**
