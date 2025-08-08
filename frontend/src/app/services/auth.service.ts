@@ -62,7 +62,8 @@ export class AuthService {
    * Handle SSO redirect - redirect user to Microsoft login
    */
   initiateSSO(email: string): void {
-    const redirectUri = `${window.location.origin}/auth/callback`;
+    //const redirectUri = `${window.location.origin}/auth/callback`;
+    const redirectUri = `http://localhost:8080/auth/entra/callback`;
     const state = Math.random().toString(36).substring(2, 15);
     
     this.getAuthorizationUrl(redirectUri, state).subscribe({

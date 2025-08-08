@@ -34,14 +34,16 @@ public class EntraAuthController {
     
     @Value("${sso.provider.azure.authorization-uri:https://login.microsoftonline.com/}")
     private String authorizationUri;
-    
+
+    @Value("${sso.registration.azure.redirect-uri}")
+    private String redirectUri;
+
     /**
      * Handle OAuth callback from Entra External ID
      */
-    @PostMapping("/callback")
+    @GetMapping("/callback")
     public ResponseEntity<?> handleOAuthCallback(
-            @RequestParam("code") String authorizationCode,
-            @RequestParam("redirect_uri") String redirectUri) {
+            @RequestParam("code") String authorizationCode) {
         
         try {
             AuthenticationResult result = entraProvider.authenticateWithAuthorizationCode(authorizationCode, redirectUri);
@@ -150,7 +152,6 @@ public class EntraAuthController {
         if (!authorizationUri.endsWith("/")) {
             url.append("/");
         }
-        url.append(tenantId).append("/oauth2/v2.0/authorize");
         url.append("?client_id=").append(clientId);
         url.append("&response_type=code");
         url.append("&redirect_uri=").append(redirectUri);
