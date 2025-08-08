@@ -37,7 +37,7 @@ public class EntraExternalIdSSOProviderTest {
     public void testAuthenticate_WithUsernamePassword() {
         AuthenticationResult result = provider.authenticate("test@example.com", "password");
         assertFalse(result.isSuccess());
-        assertTrue(result.getMessage().contains("not supported"));
+        assertTrue(result.getMessage().contains("SSO_REDIRECT_REQUIRED"));
     }
 
     @Test
