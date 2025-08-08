@@ -1,8 +1,10 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, take } from 'rxjs/operators';
 import { throwError, Observable } from 'rxjs';
+import { SsoConfigDto } from '../models/sso-config.dto';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +15,35 @@ export class AuthService {
   private authCheckUrl = 'http://localhost:8080/auth/check-method';
   private entraAuthUrl = 'http://localhost:8080/auth/entra/authorization-url';
 
-  constructor(private http: HttpClient) {}
+  // Holds the SSO configuration once retrieved from the backend
+  private ssoConfig: SsoConfigDto | null = null;
+
+  constructor(private http: HttpClient) {
+    // Eagerly fetch SSO configuration so that UI components can react dynamically
+    this.loadSsoConfig();
+  }
+
+  /**
+   * Retrieve SSO configuration from the backend.
+   */
+  private loadSsoConfig(): void {
+    this.http.get<SsoConfigDto>(`${environment.apiBaseUrl}/api/sso/config`).subscribe({
+      next: (config: SsoConfigDto) => {
+        this.ssoConfig = config;
+      },
+      error: err => {
+        console.error('Failed to load SSO configuration', err);
+        this.ssoConfig = null; // fallback to legacy mode
+      }
+    });
+  }
+
+  /**
+   * Expose the last retrieved SSO configuration to callers.
+   */
+  getSsoConfig(): SsoConfigDto | null {
+    return this.ssoConfig;
+  }
 
   login(email: string, password: string): Observable<any> {
     const headers = {
@@ -62,24 +92,40 @@ export class AuthService {
    * Handle SSO redirect - redirect user to Microsoft login
    */
   initiateSSO(email: string): void {
-    //const redirectUri = `${window.location.origin}/auth/callback`;
-    const redirectUri = `http://localhost:8080/auth/entra/callback`;
-    const state = Math.random().toString(36).substring(2, 15);
-    
-    this.getAuthorizationUrl(redirectUri, state).subscribe({
-      next: (response: any) => {
-        if (response.authorization_url) {
-          // Store state and email for validation after redirect
-          sessionStorage.setItem('sso_state', state);
-          sessionStorage.setItem('sso_email', email);
-          
-          // Redirect to Microsoft login
-          window.location.href = response.authorization_url;
-        }
+    // Dynamically load SSO configuration from the backend
+    this.http.get<SsoConfigDto>(`${environment.apiBaseUrl}/api/sso/config`).pipe(take(1)).subscribe({
+      next: (config: SsoConfigDto) => {
+        const state = Math.random().toString(36).substring(2, 15);
+        const params = new URLSearchParams({
+          response_type: 'code',
+          client_id: config.clientId || '',
+          redirect_uri: config.redirectUri,
+          scope: (config.scopes || []).join(' '),
+          state,
+          login_hint: email
+        });
+        sessionStorage.setItem('sso_state', state);
+        sessionStorage.setItem('sso_email', email);
+        window.location.href = `${config.authorizationEndpoint}?${params.toString()}`;
       },
-      error: (err) => {
-        console.error('Failed to get authorization URL:', err);
-        alert('Failed to initiate SSO login');
+      error: err => {
+        console.error('Failed to load SSO configuration:', err);
+        // Fallback: legacy flow
+        const redirectUri = `${environment.apiBaseUrl}/auth/entra/callback`;
+        const state = Math.random().toString(36).substring(2, 15);
+        this.getAuthorizationUrl(redirectUri, state).pipe(take(1)).subscribe({
+          next: (response: any) => {
+            if (response.authorization_url) {
+              sessionStorage.setItem('sso_state', state);
+              sessionStorage.setItem('sso_email', email);
+              window.location.href = response.authorization_url;
+            }
+          },
+          error: err2 => {
+            console.error('Failed to get authorization URL:', err2);
+            alert('Failed to initiate SSO login');
+          }
+        });
       }
     });
   }

@@ -35,12 +35,7 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Spring Test utilities -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
+        <!-- Spring Boot test starter (includes JUnit, AssertJ, Spring test utils, etc.) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -138,6 +133,7 @@
             <include>**/*Test.java</include>
           </includes>
           <useModulePath>false</useModulePath>
+          <argLine>-Dnet.bytebuddy.experimental=true</argLine>
         </configuration>
       </plugin>
     </plugins>
