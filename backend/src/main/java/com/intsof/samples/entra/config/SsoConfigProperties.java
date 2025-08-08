@@ -162,13 +162,20 @@ public class SsoConfigProperties {
 
         public static class Azure {
             private String authorizationUri;
+            private String authorizePath = "oauth2/v2.0/authorize";
 
             public String getAuthorizationUri() {
                 return authorizationUri;
             }
+            public String getAuthorizePath() {
+                return authorizePath;
+            }
 
             public void setAuthorizationUri(String authorizationUri) {
                 this.authorizationUri = authorizationUri;
+            }
+            public void setAuthorizePath(String authorizePath) {
+                this.authorizePath = authorizePath;
             }
         }
     }
