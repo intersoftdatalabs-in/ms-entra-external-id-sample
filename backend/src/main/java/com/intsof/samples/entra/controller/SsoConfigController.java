@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +33,7 @@ public class SsoConfigController {
     public ResponseEntity<SsoConfigDto> getConfig() {
         // Build authorization endpoint: <authorizationUri>/<tenantId>/oauth2/v2.0/authorize
         String baseAuthUri = props.getProvider().getAzure().getAuthorizationUri();
-        if (baseAuthUri == null) {
+        if (!StringUtils.hasText(baseAuthUri)) {
             baseAuthUri = "";
         }
         if (!baseAuthUri.endsWith("/")) {

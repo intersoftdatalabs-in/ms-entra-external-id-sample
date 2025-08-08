@@ -1,9 +1,10 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, take } from 'rxjs/operators';
 import { throwError, Observable } from 'rxjs';
 import { SsoConfigDto } from '../models/sso-config.dto';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +27,7 @@ export class AuthService {
    * Retrieve SSO configuration from the backend.
    */
   private loadSsoConfig(): void {
-    this.http.get<SsoConfigDto>('http://localhost:8080/api/sso/config').subscribe({
+    this.http.get<SsoConfigDto>(`${environment.apiBaseUrl}/api/sso/config`).subscribe({
       next: (config: SsoConfigDto) => {
         this.ssoConfig = config;
       },
@@ -91,40 +92,40 @@ export class AuthService {
    * Handle SSO redirect - redirect user to Microsoft login
    */
   initiateSSO(email: string): void {
-    // If we already have the SSO configuration we can build the authorization URL
-    if (this.ssoConfig) {
-      const state = Math.random().toString(36).substring(2, 15);
-      const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: this.ssoConfig.clientId || '',
-        redirect_uri: this.ssoConfig.redirectUri,
-        scope: (this.ssoConfig.scopes || []).join(' '),
-        state,
-        login_hint: email
-      });
-
-      // Store state & email before redirect
-      sessionStorage.setItem('sso_state', state);
-      sessionStorage.setItem('sso_email', email);
-
-      window.location.href = `${this.ssoConfig.authorizationEndpoint}?${params.toString()}`;
-      return;
-    }
-
-    // Fallback: request backend to compute URL (legacy flow)
-    const redirectUri = 'http://localhost:8080/auth/entra/callback';
-    const state = Math.random().toString(36).substring(2, 15);
-    this.getAuthorizationUrl(redirectUri, state).subscribe({
-      next: (response: any) => {
-        if (response.authorization_url) {
-          sessionStorage.setItem('sso_state', state);
-          sessionStorage.setItem('sso_email', email);
-          window.location.href = response.authorization_url;
-        }
+    // Dynamically load SSO configuration from the backend
+    this.http.get<SsoConfigDto>(`${environment.apiBaseUrl}/api/sso/config`).pipe(take(1)).subscribe({
+      next: (config: SsoConfigDto) => {
+        const state = Math.random().toString(36).substring(2, 15);
+        const params = new URLSearchParams({
+          response_type: 'code',
+          client_id: config.clientId || '',
+          redirect_uri: config.redirectUri,
+          scope: (config.scopes || []).join(' '),
+          state,
+          login_hint: email
+        });
+        sessionStorage.setItem('sso_state', state);
+        sessionStorage.setItem('sso_email', email);
+        window.location.href = `${config.authorizationEndpoint}?${params.toString()}`;
       },
       error: err => {
-        console.error('Failed to get authorization URL:', err);
-        alert('Failed to initiate SSO login');
+        console.error('Failed to load SSO configuration:', err);
+        // Fallback: legacy flow
+        const redirectUri = `${environment.apiBaseUrl}/auth/entra/callback`;
+        const state = Math.random().toString(36).substring(2, 15);
+        this.getAuthorizationUrl(redirectUri, state).pipe(take(1)).subscribe({
+          next: (response: any) => {
+            if (response.authorization_url) {
+              sessionStorage.setItem('sso_state', state);
+              sessionStorage.setItem('sso_email', email);
+              window.location.href = response.authorization_url;
+            }
+          },
+          error: err2 => {
+            console.error('Failed to get authorization URL:', err2);
+            alert('Failed to initiate SSO login');
+          }
+        });
       }
     });
   }
