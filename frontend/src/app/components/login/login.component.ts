@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { SsoConfigDto } from '../../models/sso-config.dto';
 import { Router } from '@angular/router';
 
 @Component({
@@ -16,7 +17,7 @@ export class LoginComponent implements OnInit {
   email: string = '';
   password: string = '';
   errorMessage: string = '';
-  ssoConfig: any | null = null;
+  ssoConfig: SsoConfigDto | null = null;
 
   constructor(private authService: AuthService, private router: Router) {}
 

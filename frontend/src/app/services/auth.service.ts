@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError, Observable } from 'rxjs';
+import { SsoConfigDto } from '../models/sso-config.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,7 @@ export class AuthService {
   private entraAuthUrl = 'http://localhost:8080/auth/entra/authorization-url';
 
   // Holds the SSO configuration once retrieved from the backend
-  private ssoConfig: any | null = null;
+  private ssoConfig: SsoConfigDto | null = null;
 
   constructor(private http: HttpClient) {
     // Eagerly fetch SSO configuration so that UI components can react dynamically
@@ -25,18 +26,21 @@ export class AuthService {
    * Retrieve SSO configuration from the backend.
    */
   private loadSsoConfig(): void {
-    this.http.get('http://localhost:8080/api/sso/config').subscribe({
-      next: (config) => {
+    this.http.get<SsoConfigDto>('http://localhost:8080/api/sso/config').subscribe({
+      next: (config: SsoConfigDto) => {
         this.ssoConfig = config;
       },
-      error: err => console.error('Failed to load SSO configuration', err)
+      error: err => {
+        console.error('Failed to load SSO configuration', err);
+        this.ssoConfig = null; // fallback to legacy mode
+      }
     });
   }
 
   /**
    * Expose the last retrieved SSO configuration to callers.
    */
-  getSsoConfig(): any | null {
+  getSsoConfig(): SsoConfigDto | null {
     return this.ssoConfig;
   }
 
