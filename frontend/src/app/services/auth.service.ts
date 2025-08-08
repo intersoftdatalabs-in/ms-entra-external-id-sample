@@ -112,12 +112,12 @@ export class AuthService {
     }
 
     // Fallback: request backend to compute URL (legacy flow)
-    const redirectUri = `${window.location.origin}/auth/callback`;
-    const fallbackState = Math.random().toString(36).substring(2, 15);
-    this.getAuthorizationUrl(redirectUri, fallbackState).subscribe({
+    const redirectUri = 'http://localhost:8080/auth/entra/callback';
+    const state = Math.random().toString(36).substring(2, 15);
+    this.getAuthorizationUrl(redirectUri, state).subscribe({
       next: (response: any) => {
         if (response.authorization_url) {
-          sessionStorage.setItem('sso_state', fallbackState);
+          sessionStorage.setItem('sso_state', state);
           sessionStorage.setItem('sso_email', email);
           window.location.href = response.authorization_url;
         }

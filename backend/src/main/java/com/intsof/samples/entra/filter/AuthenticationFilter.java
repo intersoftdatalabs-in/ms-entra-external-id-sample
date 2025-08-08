@@ -35,6 +35,10 @@ public class AuthenticationFilter implements Filter {
     private final AuditLoggingService auditLoggingService;
     private final TokenBlacklistService tokenBlacklistService;
 
+    // Legacy support for unit tests that inject this via reflection
+    @Autowired(required = false)
+    private com.intsof.samples.entra.service.UserService userService;
+
     // Constructor for testability and DI
     @Autowired
     public AuthenticationFilter(JwtService jwtService, RateLimitingService rateLimitingService, 
