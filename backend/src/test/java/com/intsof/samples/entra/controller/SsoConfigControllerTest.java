@@ -26,7 +26,7 @@ public class SsoConfigControllerTest {
         Mockito.when(mockProps.getProvider().getAzure().getAuthorizationUri()).thenReturn("https://login.microsoftonline.com/");
         Mockito.when(mockProps.getRegistration().getAzure().getTenantId()).thenReturn("demo-tenant");
         Mockito.when(mockProps.getProvider().getTokenUri()).thenReturn("https://login.microsoftonline.com/oauth2/v2.0/token");
-        Mockito.when(mockProps.getRegistration().getAzure().getRedirectUri()).thenReturn("http://localhost:4200/auth/callback");
+        Mockito.when(mockProps.getRegistration().getAzure().getRedirectUri()).thenReturn("http://localhost:8080/auth/entra/callback");
         Mockito.when(mockProps.getRegistration().getAzure().getScope()).thenReturn("openid profile email");
         Mockito.when(mockProps.getRegistration().getAzure().getClientId()).thenReturn("demo-client-id");
 
@@ -43,7 +43,7 @@ public class SsoConfigControllerTest {
         assertEquals(List.of("example.com"), dto.getEnabledDomains());
         assertEquals("https://login.microsoftonline.com/demo-tenant/oauth2/v2.0/authorize", dto.getAuthorizationEndpoint());
         assertEquals("https://login.microsoftonline.com/oauth2/v2.0/token", dto.getTokenEndpoint());
-        assertEquals("http://localhost:4200/auth/callback", dto.getRedirectUri());
+        assertEquals("http://localhost:8080/auth/entra/callback", dto.getRedirectUri());
         assertEquals(List.of("openid", "profile", "email"), dto.getScopes());
         assertEquals("demo-client-id", dto.getClientId());
     }
