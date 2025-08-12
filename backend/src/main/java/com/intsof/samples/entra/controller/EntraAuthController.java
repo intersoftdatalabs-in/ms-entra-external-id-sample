@@ -48,14 +48,15 @@ public class EntraAuthController {
      * Handle OAuth callback from Entra External ID
      */
     @GetMapping("/callback")
-    public void handleOAuthCallback(
-    //public ResponseEntity<?> handleOAuthCallback(
+    //public void handleOAuthCallback(
+    public ResponseEntity<?> handleOAuthCallback(
             @RequestParam("code") String authorizationCode,
             @RequestParam("state") String state,
             @RequestParam("session_state") String sessionState,
             HttpServletResponse response) throws IOException {
 
         String errorMessage = "";
+        String userId = "";
         try {
             AuthenticationResult result = entraProvider.authenticateWithAuthorizationCode(authorizationCode, redirectUri);
 
@@ -63,7 +64,7 @@ public class EntraAuthController {
                 // Generate application JWT tokens
                 String accessToken = jwtService.generateToken(result.getUserId(), result.getRoles(), null);
                 String refreshToken = jwtService.generateRefreshToken(result.getUserId());
-
+                userId = result.getUserId();
                 TokenResponse tokenResponse = new TokenResponse(
                     accessToken,
                     refreshToken,
@@ -85,20 +86,10 @@ public class EntraAuthController {
             //return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
 
-        URI redirectUri = URI.create("https://localhost:4200/auth/callback?code=" + authorizationCode + "&state=" + state + "&session_state=" + sessionState+ "&error=" + errorMessage);
+        URI redirectUri = URI.create("https://localhost:4200/ssowelcome?code=" + authorizationCode + "&state=" + state + "&session_state=" + sessionState  + "&userid=" + userId + "&error=" + errorMessage);
         HttpHeaders headers = new HttpHeaders();
-
-        ResponseCookie cookie = ResponseCookie.from("yourCookie", "value")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.sendRedirect(redirectUri.toString());
-
-        //headers.setLocation(redirectUri);
-        //return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        headers.setLocation(redirectUri);
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
     /**
