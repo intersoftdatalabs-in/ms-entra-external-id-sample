@@ -44,7 +44,8 @@ public class SsoConfigController {
         if (!StringUtils.hasText(authorizePath)) {
             authorizePath = "oauth2/v2.0/authorize";
         }
-        String authorizationEndpoint = baseAuthUri + (tenantId != null ? tenantId + "/" : "") + authorizePath;
+        //String authorizationEndpoint = baseAuthUri + (tenantId != null ? tenantId + "/" : "") + authorizePath;
+        String authorizationEndpoint = baseAuthUri;
 
         String tokenEndpoint = props.getProvider().getTokenUri();
         String redirectUri = props.getRegistration().getAzure().getRedirectUri();

@@ -57,5 +57,13 @@
   },
   "cli": {
     "analytics": false
+  },
+  "serve": {
+    "options": {
+      "ssl": true,
+      "sslKey": "ssl/localhost.key",
+      "sslCert": "ssl/localhost.crt",
+      "port": 4200
+    }
   }
 }

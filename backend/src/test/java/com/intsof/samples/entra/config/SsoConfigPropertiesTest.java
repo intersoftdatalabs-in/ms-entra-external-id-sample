@@ -28,7 +28,7 @@ public class SsoConfigPropertiesTest {
     @Test
     void testBindingRedirectUri() {
         assertNotNull(props.getRegistration().getAzure().getRedirectUri());
-        assertTrue(props.getRegistration().getAzure().getRedirectUri().contains("http://"));
+        assertTrue(props.getRegistration().getAzure().getRedirectUri().contains("https://"));
     }
 }
 

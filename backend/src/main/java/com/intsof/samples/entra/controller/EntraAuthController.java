@@ -4,12 +4,18 @@ import com.intsof.samples.entra.dto.TokenResponse;
 import com.intsof.samples.entra.service.JwtService;
 import com.intsof.samples.security.AuthenticationResult;
 import com.intsof.samples.security.EntraExternalIdSSOProvider;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,19 +25,19 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth/entra")
 public class EntraAuthController {
-    
+
     @Autowired
     private EntraExternalIdSSOProvider entraProvider;
-    
+
     @Autowired
     private JwtService jwtService;
-    
+
     @Value("${sso.registration.azure.client-id}")
     private String clientId;
-    
+
     @Value("${sso.registration.azure.tenant-id}")
     private String tenantId;
-    
+
     @Value("${sso.provider.azure.authorization-uri:https://login.microsoftonline.com/}")
     private String authorizationUri;
 
@@ -42,39 +48,50 @@ public class EntraAuthController {
      * Handle OAuth callback from Entra External ID
      */
     @GetMapping("/callback")
+    //public void handleOAuthCallback(
     public ResponseEntity<?> handleOAuthCallback(
-            @RequestParam("code") String authorizationCode) {
-        
+            @RequestParam("code") String authorizationCode,
+            @RequestParam("state") String state,
+            @RequestParam("session_state") String sessionState,
+            HttpServletResponse response) throws IOException {
+
+        String errorMessage = "";
+        String userId = "";
         try {
             AuthenticationResult result = entraProvider.authenticateWithAuthorizationCode(authorizationCode, redirectUri);
-            
+
             if (result.isSuccess()) {
                 // Generate application JWT tokens
                 String accessToken = jwtService.generateToken(result.getUserId(), result.getRoles(), null);
                 String refreshToken = jwtService.generateRefreshToken(result.getUserId());
-                
+                userId = result.getUserId();
                 TokenResponse tokenResponse = new TokenResponse(
-                    accessToken, 
-                    refreshToken, 
-                    3600, 
-                    result.getUserId(), 
+                    accessToken,
+                    refreshToken,
+                    3600,
+                    result.getUserId(),
                     result.getRoles()
                 );
-                
-                return ResponseEntity.ok(tokenResponse);
+                //return ResponseEntity.ok(tokenResponse);
             } else {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", result.getMessage());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+                //return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+                errorMessage = result.getMessage();
             }
-            
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "OAuth callback processing failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            errorMessage = "OAuth callback processing failed: " + e.getMessage();
+            //return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+
+        URI redirectUri = URI.create("https://localhost:4200/ssowelcome?code=" + authorizationCode + "&state=" + state + "&session_state=" + sessionState  + "&userid=" + userId + "&error=" + errorMessage);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(redirectUri);
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
-    
+
     /**
      * Validate an existing Entra ID token
      */
@@ -86,37 +103,37 @@ public class EntraAuthController {
                 error.put("error", "Missing or invalid Authorization header");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
             }
-            
+
             String token = authHeader.substring(7);
             AuthenticationResult result = entraProvider.validateEntraToken(token);
-            
+
             if (result.isSuccess()) {
                 // Generate application JWT tokens
                 String accessToken = jwtService.generateToken(result.getUserId(), result.getRoles(), null);
                 String refreshToken = jwtService.generateRefreshToken(result.getUserId());
-                
+
                 TokenResponse tokenResponse = new TokenResponse(
-                    accessToken, 
-                    refreshToken, 
-                    3600, 
-                    result.getUserId(), 
+                    accessToken,
+                    refreshToken,
+                    3600,
+                    result.getUserId(),
                     result.getRoles()
                 );
-                
+
                 return ResponseEntity.ok(tokenResponse);
             } else {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", result.getMessage());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
-            
+
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Token validation failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
+
     /**
      * Get Entra ID authorization URL for frontend
      */
@@ -124,24 +141,24 @@ public class EntraAuthController {
     public ResponseEntity<?> getAuthorizationUrl(
             @RequestParam("redirect_uri") String redirectUri,
             @RequestParam(value = "state", required = false) String state) {
-        
+
         try {
             // In a real implementation, you would construct the proper authorization URL
             // using MSAL4J or build it manually with the configured endpoints
             String authorizationUrl = buildAuthorizationUrl(redirectUri, state);
-            
+
             Map<String, String> response = new HashMap<>();
             response.put("authorization_url", authorizationUrl);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Failed to generate authorization URL: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
+
     /**
      * Build authorization URL for Entra External ID
      */
@@ -159,7 +176,7 @@ public class EntraAuthController {
         if (state != null && !state.isEmpty()) {
             url.append("&state=").append(state);
         }
-        
+
         return url.toString();
     }
 }

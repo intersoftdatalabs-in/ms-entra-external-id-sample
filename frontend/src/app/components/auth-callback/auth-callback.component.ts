@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-auth-callback',
@@ -93,7 +94,7 @@ export class AuthCallbackComponent implements OnInit {
   private exchangeCodeForTokens(code: string) {
     const redirectUri = `${window.location.origin}/auth/callback`;
     
-    this.http.post('http://localhost:8080/auth/entra/callback', null, {
+    this.http.post(`${environment.refreshUrl}`, null, {
       params: {
         code: code,
         redirect_uri: redirectUri
