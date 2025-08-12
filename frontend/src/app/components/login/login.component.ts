@@ -22,7 +22,7 @@ export class LoginComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
-    this.ssoConfig = this.authService.getSsoConfig();
+    //this.ssoConfig = this.authService.getSsoConfig();
   }
 
   login() {

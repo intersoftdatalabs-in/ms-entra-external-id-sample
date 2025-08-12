@@ -11,16 +11,16 @@ import { environment } from '../../environments/environment';
 })
 export class AuthService {
 
-  private loginUrl = 'http://localhost:8080/login';
-  private authCheckUrl = 'http://localhost:8080/auth/check-method';
-  private entraAuthUrl = 'http://localhost:8080/auth/entra/authorization-url';
+  //private loginUrl = 'https://localhost:8080/login';
+  //private authCheckUrl = 'https://localhost:8080/auth/check-method';
+  //private entraAuthUrl = 'https://localhost:8080/auth/entra/authorization-url';
 
   // Holds the SSO configuration once retrieved from the backend
   private ssoConfig: SsoConfigDto | null = null;
 
   constructor(private http: HttpClient) {
     // Eagerly fetch SSO configuration so that UI components can react dynamically
-    this.loadSsoConfig();
+    //this.loadSsoConfig();
   }
 
   /**
@@ -50,7 +50,7 @@ export class AuthService {
       'X-Email': email,
       'X-Password': password
     };
-    return this.http.post(this.loginUrl, {}, { headers }).pipe(
+    return this.http.post(`${environment.loginUrl}`, {}, { headers }).pipe(
       tap((response: any) => {
         if (response.accessToken) {
           localStorage.setItem('accessToken', response.accessToken);
@@ -67,7 +67,7 @@ export class AuthService {
    * Check if user's email domain requires SSO authentication
    */
   checkAuthMethod(email: string): Observable<any> {
-    return this.http.post(this.authCheckUrl, null, {
+    return this.http.post(`${environment.authCheckUrl}`, null, {
       params: { email: email }
     }).pipe(
       catchError(this.handleError)
@@ -82,8 +82,8 @@ export class AuthService {
     if (state) {
       params.state = state;
     }
-    
-    return this.http.get(this.entraAuthUrl, { params }).pipe(
+
+    return this.http.get(`${environment.entraAuthUrl}`, { params }).pipe(
       catchError(this.handleError)
     );
   }
@@ -172,7 +172,7 @@ export class AuthService {
   refreshToken(): Observable<any> {
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) return throwError(() => new Error('No refresh token available'));
-    return this.http.post('http://localhost:8080/refresh', {}, {
+    return this.http.post(`${environment.refreshUrl}`, {}, {
       headers: { 'X-Refresh-Token': refreshToken }
     }).pipe(
       tap((response: any) => {
@@ -206,7 +206,7 @@ export class AuthService {
       headers['Authorization'] = `Bearer ${token}`;
     }
     
-    return this.http.post('http://localhost:8080/logout', {}, { headers })
+    return this.http.post(`${environment.logoutUrl}`, {}, { headers })
       .pipe(
         tap(() => {
           this.clearTokens();

@@ -62,6 +62,7 @@ public class AuthenticationFilter implements Filter {
                "/auth/check-method".equals(path) ||
                "/auth/entra/authorization-url".equals(path) ||
                "/auth/entra/callback".equals(path) ||
+               "/api/sso/config".equals(path) ||
                "/auth/entra/validate".equals(path);
     }
 
