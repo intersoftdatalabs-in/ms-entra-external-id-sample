@@ -57,7 +57,8 @@ export class LoginComponent implements OnInit {
           this.errorMessage = response.error;
         } else if (this.authService.isAuthenticated()) {
           this.errorMessage = '';
-          this.router.navigate(['/welcome'], { state: { email: this.email } });
+          const applications = (response as any).applications || [];
+          this.router.navigate(['/welcome'], { state: { email: this.email, applications } });
         } else {
           this.errorMessage = 'Login failed.';
         }

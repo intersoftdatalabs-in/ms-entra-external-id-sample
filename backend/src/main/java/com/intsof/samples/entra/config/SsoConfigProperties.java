@@ -4,6 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Binds all SSO-related settings from application.properties/environment variables so that other
@@ -19,6 +21,7 @@ public class SsoConfigProperties {
 
     private Registration registration = new Registration();
     private Provider provider = new Provider();
+    private Map<String, List<String>> verifiedApps = new HashMap<>();
 
     // ---------------------------------------------------------------------
     // Getters / setters
@@ -46,6 +49,14 @@ public class SsoConfigProperties {
 
     public void setProvider(Provider provider) {
         this.provider = provider;
+    }
+
+    public Map<String, List<String>> getVerifiedApps() {
+        return verifiedApps;
+    }
+
+    public void setVerifiedApps(Map<String, List<String>> verifiedApps) {
+        this.verifiedApps = verifiedApps;
     }
 
     // =====================================================================
