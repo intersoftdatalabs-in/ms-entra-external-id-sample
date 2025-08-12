@@ -1,11 +1,23 @@
 package com.intsof.samples.entra.service;
 
 import com.microsoft.aad.msal4j.*;
+import com.microsoft.aad.msal4j.ConfidentialClientApplication;
+import com.microsoft.aad.msal4j.IClientCredential;
+import com.microsoft.aad.msal4j.ClientCredentialFactory;
+import com.microsoft.aad.msal4j.AuthorizationCodeParameters;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -108,6 +120,40 @@ public class EntraIdService {
             
         } catch (Exception e) {
             return null;
+        }
+    }
+    
+    /**
+     * Authenticate user credentials via Microsoft Entra using Resource Owner Password Credential flow
+     */
+    public EntraTokenValidationResult authenticateWithCredentials(String username, String password) {
+        // Delegate credential validation to Microsoft Entra token endpoint via ROPC
+        RestTemplate rest = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("grant_type", "password");
+        form.add("client_id", clientId);
+        if (clientSecret != null && !clientSecret.isEmpty()) {
+            form.add("client_secret", clientSecret);
+        }
+        form.add("username", username);
+        form.add("password", password);
+        form.add("scope", "openid profile email");
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
+        try {
+            ResponseEntity<Map> response = rest.postForEntity(tokenUri, entity, Map.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                return new EntraTokenValidationResult(false, "Authentication failed: " + response.getStatusCode(), null);
+            }
+            Map<String, Object> body = response.getBody();
+            String idToken = body != null ? (String) body.get("id_token") : null;
+            if (idToken == null) {
+                return new EntraTokenValidationResult(false, "Authentication failed: id_token missing", null);
+            }
+            return validateToken(idToken);
+        } catch (Exception e) {
+            return new EntraTokenValidationResult(false, "Authentication failed: " + e.getMessage(), null);
         }
     }
     

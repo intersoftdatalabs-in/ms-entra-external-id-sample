@@ -11,9 +11,11 @@ import { AuthService } from '../../services/auth.service';
 })
 export class WelcomeComponent {
   email: string = '';
+  applications: string[] = [];
   constructor(private router: Router, private authService: AuthService) {
     const nav = this.router.getCurrentNavigation();
     this.email = nav?.extras.state?.['email'] || '';
+    this.applications = nav?.extras.state?.['applications'] || [];
   }
 
   signOut() {

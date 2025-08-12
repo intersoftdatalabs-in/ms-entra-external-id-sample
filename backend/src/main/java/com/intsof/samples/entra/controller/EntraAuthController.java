@@ -4,6 +4,11 @@ import com.intsof.samples.entra.dto.TokenResponse;
 import com.intsof.samples.entra.service.JwtService;
 import com.intsof.samples.security.AuthenticationResult;
 import com.intsof.samples.security.EntraExternalIdSSOProvider;
+import com.intsof.samples.entra.dto.LoginRequest;
+import com.intsof.samples.entra.service.EntraIdService;
+import com.intsof.samples.entra.service.VerifiedAppService;
+import com.intsof.samples.entra.service.EntraIdService.EntraTokenValidationResult;
+import com.intsof.samples.entra.service.EntraIdService.EntraUserProfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 /**
  * Controller for handling Microsoft Entra External ID OAuth flow
@@ -25,6 +31,12 @@ public class EntraAuthController {
     
     @Autowired
     private JwtService jwtService;
+    
+    @Autowired
+    private EntraIdService entraIdService;
+
+    @Autowired
+    private VerifiedAppService verifiedAppService;
     
     @Value("${sso.registration.azure.client-id}")
     private String clientId;
@@ -49,17 +61,23 @@ public class EntraAuthController {
             AuthenticationResult result = entraProvider.authenticateWithAuthorizationCode(authorizationCode, redirectUri);
             
             if (result.isSuccess()) {
-                // Generate application JWT tokens
-                String accessToken = jwtService.generateToken(result.getUserId(), result.getRoles(), null);
-                String refreshToken = jwtService.generateRefreshToken(result.getUserId());
+                // Generate application JWT tokens with domain-verified applications
+                String userId = result.getUserId();
+                String domain = userId.contains("@") ? userId.substring(userId.indexOf('@') + 1).toLowerCase() : "";
+                java.util.List<String> apps = verifiedAppService.getVerifiedApplicationsForDomain(domain);
+                java.util.Map<String, Object> claims = new java.util.HashMap<>();
+                claims.put("applications", apps);
+                String accessToken = jwtService.generateToken(userId, result.getRoles(), claims);
+                String refreshToken = jwtService.generateRefreshToken(userId);
                 
                 TokenResponse tokenResponse = new TokenResponse(
-                    accessToken, 
-                    refreshToken, 
-                    3600, 
-                    result.getUserId(), 
+                    accessToken,
+                    refreshToken,
+                    result.getExpiresIn(),
+                    userId,
                     result.getRoles()
                 );
+                tokenResponse.setApplications(apps);
                 
                 return ResponseEntity.ok(tokenResponse);
             } else {
@@ -91,17 +109,23 @@ public class EntraAuthController {
             AuthenticationResult result = entraProvider.validateEntraToken(token);
             
             if (result.isSuccess()) {
-                // Generate application JWT tokens
-                String accessToken = jwtService.generateToken(result.getUserId(), result.getRoles(), null);
-                String refreshToken = jwtService.generateRefreshToken(result.getUserId());
+                // Generate application JWT tokens with domain-verified applications
+                String userId = result.getUserId();
+                String domain = userId.contains("@") ? userId.substring(userId.indexOf('@') + 1).toLowerCase() : "";
+                java.util.List<String> apps = verifiedAppService.getVerifiedApplicationsForDomain(domain);
+                java.util.Map<String, Object> claims = new java.util.HashMap<>();
+                claims.put("applications", apps);
+                String accessToken = jwtService.generateToken(userId, result.getRoles(), claims);
+                String refreshToken = jwtService.generateRefreshToken(userId);
                 
                 TokenResponse tokenResponse = new TokenResponse(
-                    accessToken, 
-                    refreshToken, 
-                    3600, 
-                    result.getUserId(), 
+                    accessToken,
+                    refreshToken,
+                    result.getExpiresIn(),
+                    userId,
                     result.getRoles()
                 );
+                tokenResponse.setApplications(apps);
                 
                 return ResponseEntity.ok(tokenResponse);
             } else {
@@ -115,6 +139,30 @@ public class EntraAuthController {
             error.put("error", "Token validation failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+    }
+
+    /**
+     * Handle credentials-based login
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> loginWithCredentials(@RequestBody LoginRequest request) {
+        EntraTokenValidationResult result = entraIdService.authenticateWithCredentials(request.getUsername(), request.getPassword());
+        if (!result.isValid()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", result.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+        EntraUserProfile profile = result.getUserProfile();
+        String email = profile.getEmail();
+        String domain = email.contains("@") ? email.substring(email.indexOf('@') + 1).toLowerCase() : "";
+        List<String> apps = verifiedAppService.getVerifiedApplicationsForDomain(domain);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("applications", apps);
+        String accessToken = jwtService.generateToken(email, profile.getRoles(), claims);
+        String refreshToken = jwtService.generateRefreshToken(email);
+        TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken, 3600, email, profile.getRoles());
+        tokenResponse.setApplications(apps);
+        return ResponseEntity.ok(tokenResponse);
     }
     
     /**

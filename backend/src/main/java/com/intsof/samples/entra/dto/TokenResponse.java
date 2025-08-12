@@ -9,6 +9,7 @@ public class TokenResponse {
     private long expiresIn;
     private String username;
     private List<String> roles;
+    private List<String> applications;
 
     public TokenResponse() {}
 
@@ -37,4 +38,7 @@ public class TokenResponse {
 
     public List<String> getRoles() { return roles; }
     public void setRoles(List<String> roles) { this.roles = roles; }
+
+    public List<String> getApplications() { return applications; }
+    public void setApplications(List<String> applications) { this.applications = applications; }
 }
